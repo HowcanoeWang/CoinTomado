@@ -12,7 +12,6 @@ soup_list,_ = read_ziw(file_path)
 
 df_list = table2dataframe(soup_list[0])
 data = df_list[0][0]
-print(data)
 
 data.columns = data.iloc[0]
 data = data.drop(0, axis=0)

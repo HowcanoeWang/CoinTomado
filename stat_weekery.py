@@ -53,24 +53,46 @@ for soup, file in zip(soup_list, file_list):
 
 kind_time_total = kind_time_total.fillna(0)
 
+
+
 # group data by month
 kind_time_month = kind_time_total.resample('M').mean().fillna(0)
 kind_time_month.index=kind_time_month.index.to_period('M')
-print(kind_time_month)
-
-#plt.subplot(1,1,1)
-kind_time_month.plot(kind='bar', title='Year View (Month.mean)',)
-plt.show()
-
 
 # group data by week
 kind_time_week = kind_time_total.resample('W').mean().dropna(axis=0, how='all')
 kind_time_week.index = kind_time_week.index.week
-print(kind_time_week)
-kind_time_week.plot(kind='bar', title='Year View (Week.mean)',)
-plt.show()
 
+inloop = True
+while inloop:
+    Route1 = input('Show summary? (y/n)')
+    if Route1 == 'y':
+        plt.style.use('ggplot')
+        ax1 = kind_time_month.plot(kind='bar', title='Year View (Month.mean)', figsize=(10, 4))
+        ax1.set_ylabel('Hours')
+        ax1.xaxis.grid()
+        ax1.set_xticklabels(kind_time_month.index, rotation=0)
+        # shrink current axis by 13
+        box1 = ax1.get_position()
+        ax1.set_position([box1.x0, box1.y0, box1.width * 1.13, box1.height])
+        ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        plt.tight_layout()
 
+        ax2 = kind_time_week.plot(kind='bar', title='Year View (Week.mean)', figsize=(10, 4))
+        ax2.set_xlabel('Week No.')
+        ax2.set_ylabel('Hours')
+        ax2.xaxis.grid()
+        ax2.set_xticklabels(kind_time_week.index, rotation=0)
+        # shrink current axis by 13%
+        box2 = ax2.get_position()
+        ax2.set_position([box2.x0, box2.y0, box2.width * 1.13, box2.height])
+        ax2.legend(loc='center left',  bbox_to_anchor=(1, 0.5))
+        plt.tight_layout()
 
-
-
+        plt.show()
+        input('Press <Enter> to quit')
+        inloop = False
+    elif Route1 == 'n':
+        print('In developing')
+    else:
+        print('Please input only "n" or "y"')
