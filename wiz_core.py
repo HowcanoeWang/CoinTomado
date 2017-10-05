@@ -60,13 +60,12 @@ def table2dataframe(html, color_kind=None, header='off'):
         kd = pd.DataFrame(index=index, columns=columns)
         skip_index = np.zeros([row, col], dtype=np.bool)
         for r, tr in enumerate(table.children):
-            #c = 0
             for c, td in enumerate(tr.children):
-            #for td in tr.children:
                 if type(td) == bs4.element.NavigableString:
                     continue
                 else:
                     attrs = td.attrs
+
                 if td.string == None:
                     for sr in td.children:
                         if sr.string:
@@ -78,23 +77,29 @@ def table2dataframe(html, color_kind=None, header='off'):
 
                 if 'rowspan' in attrs.keys():
                     rowspan = int(attrs['rowspan'])
-                    #if rowspan == 1:
-                    #    rowspan = False
+                    if rowspan == 1:
+                        rowspan = False
                 else:
                     rowspan = False
+
                 if 'colspan' in attrs.keys():
                     colspan = int(attrs['colspan'])
-                    #if colspan == 1:
-                    #    rowspan = False
+                    if colspan == 1:
+                        colspan = False
                 else:
                     colspan = False
-                if rowspan == colspan == 1:
-                    rowspan = colspan = False
 
                 if 'style' in attrs.keys():
                     style = attrs['style']
                 else:
                     style = False
+
+                # input string into df according to skip_index
+                # then c + 1 to check next cell
+                # until next cell's skip_index == False
+                # save current sting to that cell
+                while skip_index[r][c]:
+                    c += 1
                 # fresh skip_index
                 if style:
                     if 'background-color: ' in style:
@@ -115,12 +120,7 @@ def table2dataframe(html, color_kind=None, header='off'):
                         df.ix[r][c + x] = string
                         kd.ix[r][c + x] = color
                         skip_index[r][c + x] = True
-                # input string into df according to skip_index
-                # then c + 1 to check next cell
-                # until next cell's skip_index == False
-                # save current sting to that cell
-                while skip_index[r][c]:
-                    c += 1
+                # fill in data
                 df.ix[r][c] = string
                 kd.ix[r][c] = color
                 # change skip_index to True if cell already has value
