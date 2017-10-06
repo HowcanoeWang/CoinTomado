@@ -1,3 +1,5 @@
 __future__
 __pycache__
 *.exe
+config.txt
+kind_time_total.pkl

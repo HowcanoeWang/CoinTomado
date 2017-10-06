@@ -3,7 +3,8 @@ import os
 import pandas as pd
 from wiz_core import read_ziw, table2dataframe
 
-wiz_path = r'C:\\Users\\' + os.getlogin() + r'\Documents\My Knowledge\Data\18251920822@126.com\\'
+#wiz_path = r'C:\\Users\\' + os.getlogin() + r'\Documents\My Knowledge\Data\18251920822@126.com\\'
+wiz_path = os.path.expanduser('~\\Documents\\My Knowledge\\Data\\18251920822@126.com\\')
 
 folder_path = r'My Notes\\备份备忘\\'
 file_name = r'健身记录.ziw'
