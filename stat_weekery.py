@@ -71,7 +71,7 @@ def reload_kind_data(wiz_path_folder):
         # set removed time_range
         rm = []
         for n, _ in enumerate(dates):
-            if data.count().iloc[n] - data.shape[0] != 0:
+            if data.count().iloc[n] == 0:
                 # skip columns all NaN
                 rm.append(n)
                 continue
@@ -156,12 +156,14 @@ if __name__ == '__main__':
     # draw picture interface
     loop2 = True
     while loop2:
-        Route1 = input('[KeyInput]: Show summary? (y/n):')
+        Route1 = input('[KeyInput]: Show summary? (y/n/q):')
         if Route1 == 'y':
             kind_plot(kind_time_total)
             loop2 = False
         elif Route1 == 'n':
             print('[Warning]: In developing')
+        elif Route1 == 'q':
+            loop2 = False
         else:
             print('[Warning]: Please input only "n" or "y"')
 
