@@ -28,7 +28,7 @@ def folder_path():
             quit()
         # custom config file exist
         else:
-            f =  open('config.txt')
+            f = open('config.txt')
             for line in f.read().split('\n'):
                 _locals = locals()
                 wiz_path = _locals['wiz_path']
@@ -45,6 +45,7 @@ def folder_path():
                 quit()
 
     return dir_combine
+
 
 def read_year_folder(wiz_path_folder_comb):
     # simple dataframe using data from color_kind
@@ -89,9 +90,8 @@ def read_year_folder(wiz_path_folder_comb):
 
 
 def reload_kind_data(wiz_path_folder):
-    kind_time_total = pd.DataFrame(columns=['fun', 'rest', 'work',
+    kt_total = pd.DataFrame(columns=['fun', 'rest', 'work',
                                             'compel', 'useless', 'sleep'])
-
     folder_contents = os.listdir(wiz_path_folder)
 
     for year_folder in folder_contents:
@@ -100,51 +100,53 @@ def reload_kind_data(wiz_path_folder):
             continue
         else:
             # read year folder one by one
-            kind_time_folder = read_year_folder(wiz_path_folder_comb)
-            kind_time_total = kind_time_total.append(kind_time_folder)
+            kt_folder = read_year_folder(wiz_path_folder_comb)
+            kt_total = kt_total.append(kt_folder)
 
-    kind_time_total = kind_time_total.fillna(0)
-    kind_time_total.to_pickle('kind_time_total.pkl')
+    kt_total = kt_total.fillna(0)
+    kt_total.to_pickle('kind_time_total.pkl')
 
-    return kind_time_total
+    return kt_total
 
 
-def kind_plot(kind_time_month, kind_time_week):
+def kind_plot(df_month, df_week):
     # =============== Plot preparation ===================
     plt.style.use('ggplot')
     fig, axs = plt.subplots(2, 1)
 
     # --------------- Month plot ---------------------
-    ax1 = kind_time_month.plot(kind='bar', title='Year View (Month.mean)', ax=axs[0], legend=False)
+    ax1 = df_month.plot(kind='bar', title='Year View (Month.mean)', ax=axs[0], legend=False)
     ax1.set_ylabel('Hours')
     ax1.set_xlabel('Month')
     ax1.xaxis.grid()
-    ax1.set_xticklabels(kind_time_month.index, rotation=0)
+    ax1.set_xticklabels(df_month.index, rotation=0)
     ax1.legend(loc='best', ncol=2)
 
     # --------------- Week plot ------------------
-    ax2 = kind_time_week.plot(kind='bar', title='Year View (Week.mean)', ax=axs[1], legend=False)
+    ax2 = df_week.plot(kind='bar', title='Year View (Week.mean)', ax=axs[1], legend=False)
     ax2.set_xlabel('Week No.')
     ax2.set_ylabel('Hours')
     ax2.xaxis.grid()
-    ax2.set_xticklabels(kind_time_week.index, rotation=0)
+    ax2.set_xticklabels(df_week.index, rotation=0)
 
-    fig.set_size_inches((10,7))
+    fig.set_size_inches((10, 7))
     plt.tight_layout()
     plt.show()
 
+
 if __name__ == '__main__':
     # custom color kind
-    color_kind = {"rgb(182, 202, 255)":"NaN",
-                  "rgb(172, 243, 254)":"fun",       # 尽情娱乐
-                  "rgb(178, 255, 161)":"rest",      # 休息放松
-                  "rgb(254, 244, 156)":"work",      # 火力全开
-                  "rgb(254, 207, 156)":"compel",    # 强迫工作
-                  "rgb(247, 182, 255)":"useless",   # 无效工作
-                  "rgb(238, 238, 238)":"sleep"}     # 睡眠时间
-
+    color_kind = {"rgb(182, 202, 255)": "NaN",
+                  "rgb(172, 243, 254)": "fun",       # 尽情娱乐
+                  "rgb(178, 255, 161)": "rest",      # 休息放松
+                  "rgb(254, 244, 156)": "work",      # 火力全开
+                  "rgb(254, 207, 156)": "compel",    # 强迫工作
+                  "rgb(247, 182, 255)": "useless",   # 无效工作
+                  "rgb(238, 238, 238)": "sleep"}     # 睡眠时间
+    kind_time_total = pd.DataFrame(columns=['fun', 'rest', 'work',
+                                            'compel', 'useless', 'sleep'])
     # get folder path
-    dir_combine = folder_path()
+    wiz_dir = folder_path()
 
     # =========== using cached results or reload latest data ===========
     loop1 = True
@@ -155,19 +157,20 @@ if __name__ == '__main__':
                 kind_time_total = pd.read_pickle('kind_time_total.pkl')
             else:
                 print('[Warning]: Cached data not exist, reload data from wiz notes')
-                kind_time_total = reload_kind_data(dir_combine)
+                kind_time_total = reload_kind_data(wiz_dir)
             loop1 = False
         elif reload == 'r':
-            kind_time_total = reload_kind_data(dir_combine)
+            kind_time_total = reload_kind_data(wiz_dir)
             loop1 = False
         else:
+
             print('[Warning]: Please input only "c" or "r"')
 
     # =========== draw picture interface ================
     # == Default show ==
-    year = str(datetime.datetime.now().year)
-    y_st = year + '-01-01'
-    y_ed = year + '-12-31'
+    year_now = str(datetime.datetime.now().year)
+    y_st = year_now + '-01-01'
+    y_ed = year_now + '-12-31'
     # select current year
     kind_time_year2show = kind_time_total.loc[y_st:y_ed]
     # group data by month
@@ -199,8 +202,7 @@ if __name__ == '__main__':
     # == Adjust Mode ==
         # === Year Adjust ===
             while loop3:
-                folder_contents = os.listdir(dir_combine)
-                year_list = [x for x in folder_contents if '.' not in x]
+                year_list = [x for x in os.listdir(wiz_dir) if '.' not in x]
                 route_y = input('[Info   ]: Set year (' + str(year_list)[1:-1] + ", 'q'):")
                 if route_y in year_list:
                     y_st = route_y + '-01-01'
@@ -228,7 +230,7 @@ if __name__ == '__main__':
                         if w_len <= 10:   # data length to small to adjust, Mode Off
                             loop4 = False
                             kind_plot(kind_time_month, kind_time_week)
-                        while loop4 :
+                        while loop4:
                             route2 = input('[Input  ]: "<" to forward; ">" to backward (</>/q):')
                             if route2 == '<':
                                 if abs(w_st - 5) <= w_len:   # can go forward
@@ -239,7 +241,6 @@ if __name__ == '__main__':
                                     w_st -= step
                                     w_ed -= step
                                     print("[Warning]: Can't go forward anymore")
-                                print(w_st, w_ed)
                                 kind_plot(kind_time_month, kind_time_week.iloc[w_st:w_ed])
                             elif route2 == '>':
                                 if w_ed + 5 < 0:   # can go backward
@@ -252,7 +253,6 @@ if __name__ == '__main__':
                                     w_ed += step
                                     print("[Warning]: Can't go backward anymore")
                                     kind_plot(kind_time_month, kind_time_week.iloc[w_st:])
-                                print(w_st, w_ed)
                             elif route2 == 'q':
                                 loop4 = False
                             else:
