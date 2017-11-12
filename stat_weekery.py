@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 def folder_path():
     # default path
     wiz_path = os.path.expanduser(r'~/Documents/My Knowledge/Data/')
-    user_email = '18251920822@126.com'
-    folder = r'/Time Log/My Weekry'
+    user_email = 'your_wiz_account_email@web.com'
+    folder = r'/My Weekry'
     dir_combine = wiz_path + user_email + folder
 
     if not os.path.exists(dir_combine):
