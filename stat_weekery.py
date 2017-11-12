@@ -10,39 +10,37 @@ def folder_path():
     # default path
     wiz_path = os.path.expanduser(r'~/Documents/My Knowledge/Data/')
     user_email = 'your_wiz_account_email@web.com'
-    folder = r'/My Weekry'
+    folder = r'/My Weekery'
     dir_combine = wiz_path + user_email + folder
 
-    if not os.path.exists(dir_combine):
-        print('[Warning]: Default wiz_note folder not applicable, trying load custom folder.')
-        # try to load custom config file
-        if not os.path.exists('config.txt'):
-            print('[Warning]: Custom config file "config.txt" not exist.')
-            with open('config.txt', 'w+') as f:
-                f.write("wiz_path = r'" + wiz_path + "'")
-                f.write("\nuser_email = r'" + user_email + "'")
-                f.write("\nfolder = r'" + folder + "'")
-            print('[Info   ]: Custom config file "config.txt" has been created\n'
-                  '[Info   ]: Please edit it and run this program again.')
-            input('[Input  ]: Press <Enter> to quit')
-            quit()
-        # custom config file exist
-        else:
-            f = open('config.txt')
-            for line in f.read().split('\n'):
-                _locals = locals()
-                wiz_path = _locals['wiz_path']
-                user_email = _locals['user_email']
-                exec(line, globals(), _locals)
-                folder = _locals['folder']
-            f.close()
-            dir_combine = wiz_path + user_email + folder
+    # try to load custom config file
+    if not os.path.exists('config.txt'):
+        print('[Info   ]: Custom config file "config.txt" not exist, created')
+        with open('config.txt', 'w+') as f:
+            f.write("wiz_path = r'" + wiz_path + "'")
+            f.write("\nuser_email = r'" + user_email + "'")
+            f.write("\nfolder = r'" + folder + "'")
+        print('[Info   ]: Custom config file "config.txt" has been created\n'
+              '[Info   ]: Please edit it and run this program again.')
+        input('[Input  ]: Press <Enter> to quit')
+        quit()
+    # custom config file exist
+    else:
+        f = open('config.txt')
+        for line in f.read().split('\n'):
+            _locals = locals()
+            exec(line, globals(), _locals)
+            wiz_path = _locals['wiz_path']
+            user_email = _locals['user_email']
+            folder = _locals['folder']
+        f.close()
+        dir_combine = wiz_path + user_email + folder
 
-            if not os.path.exists(dir_combine):
-                print('[Warning]: Could not find the following wiz_note folder:\n' + dir_combine)
-                print('[Warning]: Please reedit it again and then run this program.')
-                input('[Input  ]: Press <Enter> to exit')
-                quit()
+        if not os.path.exists(dir_combine):
+            print('[Warning]: Could not find the following wiz_note folder:\n' + dir_combine)
+            print('[Warning]: Please reedit it again and then run this program.')
+            input('[Input  ]: Press <Enter> to exit')
+            quit()
 
     return dir_combine
 
