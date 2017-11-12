@@ -1,14 +1,16 @@
-# How to use/ÈçºÎÊ¹ÓÃ
+# å¦‚ä½•ä½¿ç”¨/How to use
+
+é¦–å…ˆè¦å†ä½ çš„ç”µè„‘ä¸Šå®‰è£…ä¸ºçŸ¥ç¬”è®°
 
 First to install WizNote on your computer.
-Ê×ÏÈÒªÔÙÄãµÄµçÄÔÉÏ°²×°ÎªÖª±Ê¼Ç
+
+å¯ä»¥ä»Žè¿™ä¸ªé“¾æŽ¥ä¸‹è½½ï¼š www.wiz.cn
 
 Download here: www.wiz.cn
-¿ÉÒÔ´ÓÕâ¸öÁ´½ÓÏÂÔØ£º www.wiz.cn
 
 ![Wiz Download Webside](/images/download.png)
 
-### How to use weekery.exe
+### å¦‚ä½•ä½¿ç”¨å‘¨è®°/How to use weekery.exe
 
 1.  In WizNote, set up a weekery file folder. 
     for example, called "My Weekery"
@@ -19,10 +21,9 @@ Download here: www.wiz.cn
     The name **must** in the format like **yy[mm.dd-mm.dd]Wno.**
     example: 17[11.06-11.12]W45
 5. Do some modify to your notes ^_^
-5. Run "stat_exercise.exe", it will create a "config.txt" file like this:
-    > wiz_path = r'C:\Users\YourName/Documents/My Knowledge/Data/'
-user_email = r'your_wiz_account_email@web.com'
-folder = r'/My Weekery/'
-
-6. Modify the "config.txt" according to your computer condition.
-7. Run that exe again and see the pop-up figure, enjoy it!
+6. Run "stat_exercise.exe", it will create a "config.txt" file like this:
+    wiz_path = r'C:\Users\YourName/Documents/My Knowledge/Data/'
+    user_email = r'your_wiz_account_email@web.com'
+    folder = r'/My Weekery/'
+7. Modify the "config.txt" according to your computer condition.
+8. Run that exe again and see the pop-up figure, enjoy it!
