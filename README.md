@@ -1,4 +1,4 @@
-﻿# 如何使用
+# 如何使用
 
 首先要再你的电脑上安装为知笔记  
 可以从这个链接下载： www.wiz.cn  
@@ -22,10 +22,7 @@
     ![note modify](/images/note_modify.png)
 6. 运行 "stat_exercise.exe", 第一次运行时，他会创建一个叫"config.txt"的文件
     ![exe first run](/images/exe_first_run.png)
-    > wiz_path = r'C:\Users\YourName/Documents/My Knowledge/Data/'  
-    > user_email = r'your_wiz_account_email@web.com'  
-    > folder = r'/My Weekery/'  
-7. 根据你的实际信息，适当修改"config.txt"的内容（主要修改为知账号的邮箱，也可以根据自己的实际情况修改文件夹名，wiz_path一般不需要修改）
-8. 再次运行Stat_Weekery.exe，按照提示操作即可
+7. 根据你的实际信息，适当修改"config.txt"的内容（主要修改为知账号的邮箱，也可以根据自己的实际情况修改文件夹名，wiz_path一般不需要修改除非你为知默认储存路径修改过）
+8. 再次运行Stat_Weekery.exe，按照提示操作即可  
     ![codes](/images/codes.png)
     ![final effect](/images/final_effect.png)
