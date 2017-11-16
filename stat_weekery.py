@@ -1,48 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import wiz_core
 import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
-
-
-def folder_path():
-    # default path
-    wiz_path = os.path.expanduser(r'~/Documents/My Knowledge/Data/')
-    user_email = 'your_wiz_account_email@web.com'
-    folder = r'/My Weekery'
-    dir_combine = wiz_path + user_email + folder
-
-    # try to load custom config file
-    if not os.path.exists('config.txt'):
-        print('[Info   ]: Custom config file "config.txt" not exist, created')
-        with open('config.txt', 'w+') as f:
-            f.write("wiz_path = r'" + wiz_path + "'")
-            f.write("\nuser_email = r'" + user_email + "'")
-            f.write("\nfolder = r'" + folder + "'")
-        print('[Info   ]: Custom config file "config.txt" has been created\n'
-              '[Info   ]: Please edit it and run this program again.')
-        input('[Input  ]: Press <Enter> to quit')
-        quit()
-    # custom config file exist
-    else:
-        f = open('config.txt')
-        for line in f.read().split('\n'):
-            _locals = locals()
-            exec(line, globals(), _locals)
-            wiz_path = _locals['wiz_path']
-            user_email = _locals['user_email']
-            folder = _locals['folder']
-        f.close()
-        dir_combine = wiz_path + user_email + folder
-
-        if not os.path.exists(dir_combine):
-            print('[Warning]: Could not find the following wiz_note folder:\n' + dir_combine)
-            print('[Warning]: Please reedit it again and then run this program.')
-            input('[Input  ]: Press <Enter> to exit')
-            quit()
-
-    return dir_combine
 
 
 def read_year_folder(wiz_path_folder_comb):
@@ -144,10 +106,11 @@ if __name__ == '__main__':
     kind_time_total = pd.DataFrame(columns=['fun', 'rest', 'work',
                                             'compel', 'useless', 'sleep'])
     # get folder path
-    wiz_dir = folder_path()
+    wiz_dir = wiz_core.load_config('weekery_folder')
 
     # =========== using cached results or reload latest data ===========
     loop1 = True
+    loop2 = True
     while loop1:
         reload = input("[Input  ]: Using cached data or reload latest data? (c/r):")
         if reload == 'c':
@@ -171,14 +134,19 @@ if __name__ == '__main__':
     y_ed = year_now + '-12-31'
     # select current year
     kind_time_year2show = kind_time_total.loc[y_st:y_ed]
-    # group data by month
-    kind_time_month = kind_time_year2show.resample('M').mean().fillna(0)
-    kind_time_month.index = kind_time_month.index.to_period('M')
-    # group data by week
-    kind_time_week = kind_time_year2show.resample('W').mean().dropna(axis=0, how='all')
-    kind_time_week.index = kind_time_week.index.week
-    # plot show
-    kind_plot(kind_time_month, kind_time_week.iloc[-10:])
+    try:
+        # group data by month
+        kind_time_month = kind_time_year2show.resample('M').mean().fillna(0)
+        kind_time_month.index = kind_time_month.index.to_period('M')
+        # group data by week
+        kind_time_week = kind_time_year2show.resample('W').mean().dropna(axis=0, how='all')
+        kind_time_week.index = kind_time_week.index.week
+        # plot show
+        kind_plot(kind_time_month, kind_time_week.iloc[-10:])
+    except TypeError:
+        print('[Warning]: No data obtained. Please check your "Config.txt" or wiz folder')
+        input('[Input  ]: Press <enter> to exit')
+        loop2 = False
 
     # ^Default show^
     # |- "n" -> Adjust mode
@@ -191,7 +159,6 @@ if __name__ == '__main__':
     # |   |   |- "q" -> back to upper stage
     # |- "q" -> Quit
 
-    loop2 = True
     while loop2:
         route1 = input('[Input  ]: Adjust time period? (y/q):')
         if route1 == 'y':
