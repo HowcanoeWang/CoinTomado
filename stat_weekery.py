@@ -26,7 +26,14 @@ def read_year_folder(wiz_path_folder_comb):
         year = r'20' + file[0:2] + '.'
         day_op = file[3:8]
         day_ed = file[9:14]
-        dates = pd.date_range(year + day_op, year + day_ed)
+
+        # judge whether wiz.file title correct
+        try:
+            dates = pd.date_range(year + day_op, year + day_ed)
+        except(ValueError):
+            print('[Warning]: Wiz file name['+ file +'] invalid, please check wiz folder and rename it!')
+            continue
+            
 
         # set container
         kind_time = pd.DataFrame(columns=['fun', 'rest', 'work',
