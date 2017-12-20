@@ -65,16 +65,28 @@ def load_config(name_folder):
     
     return dir_combine
     
-def read_ziw(inputstr):
+def read_ziw(input_string):
+    '''
+    if input_string is file
+    [output]
+        soup_list = ['...']
+        file_list = ['...']
+
+    if input_string is folder
+    [output]
+        soup_list = ['', '', '', ...]
+        file_list = ['', '', '', ...]
+    
+    '''
     file_list = []
     file_dir_list = []
     soup_list = []
-    if os.path.isfile(inputstr):
-        file_dir_list.append(inputstr)
+    if os.path.isfile(input_string):
+        file_dir_list.append(input_string)
     else:
-        for name in os.listdir(inputstr):
+        for name in os.listdir(input_string):
             file_list.append(name[:-4])
-            file_dir_list.append(inputstr + '\\' + name)
+            file_dir_list.append(input_string + '\\' + name)
         
     for file_name in file_dir_list:
         zfile = zipfile.ZipFile(file_name, 'r')

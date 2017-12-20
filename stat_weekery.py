@@ -1,43 +1,97 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
 import wiz_core
 import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def read_year_folder(wiz_path_folder_comb):
-    # simple dataframe using data from color_kind
-    # date    |sleep|fun|rest|work|compel|useless|
-    # 2017/9/1|7.5  |3.5|4.5 |3.5 |0.5   |0.5    |
-    # 2017/9/2|7.5  |3.5|4.5 |3.5 |0.5   |0.5    |
-    kind_time_folder = pd.DataFrame(columns=['fun', 'rest', 'work',
-                                             'compel', 'useless', 'sleep'])
-    soup_list, file_list = wiz_core.read_ziw(wiz_path_folder_comb)
+def wiz_week_index(wiz_path_folder):
+    ''' get index of wiz files
 
-    for soup, file in zip(soup_list, file_list):
-        df_list = wiz_core.table2dataframe(soup, color_kind)
+    :param wiz_path_folder: read from config.txt directly
+        [type] str
+        [e.g.] '/Time Log/My Weekry'
 
-        # remove first row 'table head' and first column 'time head'
-        data = df_list[0][1].drop(0, axis=1).drop(0, axis=0)
+    :return week_index: a dict to store the week number
+        [type] dict.key.int;
+               dict.list.int
+        [e.g.] {2017: [48, 49, 50], 2018: []}
+        
+    :return week_filename: a dict to store the week
+        [type] dict.key.int; dict.list.str
+        [e.g.] {2017: ['17[11.27-12.03]W48.ziw', '17[12.04-12.10]W49.ziw', '17[12.11-12.17]W50.ziw'],
+                2018: []}
+    '''
+    week_index = dict()
+    week_filename = dict()
 
-        # get time_range
-        year = r'20' + file[0:2] + '.'
-        day_op = file[3:8]
-        day_ed = file[9:14]
+    folder_contents = os.listdir(wiz_path_folder)
+    # [type] list.str
+    # [e.g.] ['2017', '2018', 'wizfolder.ini']
 
-        # judge whether wiz.file title correct
-        try:
-            dates = pd.date_range(year + day_op, year + day_ed)
-        except(ValueError):
-            print('[Warning]: Wiz file name['+ file +'] invalid, please check wiz folder and rename it!')
+
+    for year_folder in folder_contents:
+        wiz_path_folder_comb = os.path.join(wiz_path_folder, year_folder)
+        if os.path.isfile(wiz_path_folder_comb):
             continue
-            
+        else:
+            try:
+                year_folder_int = int(year_folder)
+                year_folder_contents = os.listdir(wiz_path_folder_comb)
+                week_list = []
+                week_filename_list = []
+                for file_name in year_folder_contents:
+                    try:
+                        week = int(file_name[-6:-4])
+                        week_list.append(week)
+                        week_filename_list.append(file_name)
+                    except ValueError:
+                        print('[Warning]:wiz file name [' + file_name + '] is not in correct format: \
+                               YY[MM.DD-MM.DD]WNo. [e.g.]17[12.11-12.17]W50')
 
-        # set container
-        kind_time = pd.DataFrame(columns=['fun', 'rest', 'work',
-                                          'compel', 'useless', 'sleep'])
+                week_index[year_folder_int] = week_list
+                week_filename[year_folder_int] = week_filename_list
+            except ValueError:   # year_folder is not a number string, int(year_folder) raise error
+                print('[Warning]: "year_folder":[' + year_folder + '] should be a number')
+                continue
+            
+    return week_index, week_filename
+
+
+def read_one_file(file_path):
+    ''' read the given weekery wiz file into a required format pd.DataFrame
+    :param file_path: the path of wiz file to read
+    :return kind_time: simple dataframe using data from color_kind
+        [type] pd.DataFrame
+        [e.g.] date    |sleep|fun|rest|work|compel|useless|
+               2017/9/1|7.5  |3.5|4.5 |3.5 |0.5   |0.5    |
+               2017/9/2|7.5  |3.5|4.5 |3.5 |0.5   |0.5    |
+    '''
+    # split path and file name
+    _, file_name = os.path.split(file_path)
+    # set container
+    kind_time = pd.DataFrame(columns=['fun', 'rest', 'work',
+                                      'compel', 'useless', 'sleep'])
+
+    # soup_list have only one element because read_one_file
+    # [e.g.] soup_list = [contents]
+    soup_list, _ = wiz_core.read_ziw(file_path)
+
+    df_list = wiz_core.table2dataframe(soup_list[0], color_kind)
+    
+    # remove first row 'table head' and first column 'time head'
+    # df_list[0] is this wiz file
+    # df_list[0][1] is the second table in that wiz_file
+    data = df_list[0][1].drop(0, axis=1).drop(0, axis=0)
+
+    # get time_range
+    year = r'20' + file_name[0:2] + '.'
+    day_op = file_name[3:8]
+    day_ed = file_name[9:14]
+
+    try:
+        dates = pd.date_range(year + day_op, year + day_ed)
         # set removed time_range
         rm = []
         for n, _ in enumerate(dates):
@@ -51,30 +105,107 @@ def read_year_folder(wiz_path_folder_comb):
 
         dates = dates.delete(rm)
         kind_time.index = dates
-        kind_time_folder = kind_time_folder.append(kind_time)
+    except ValueError:     # judge whether wiz.file title correct
+        print('[Warning]: Wiz file name['+ file_name +'] invalid, please check wiz folder and rename it!')
+                                                   
+    return kind_time
 
-    return kind_time_folder
+    
+def read_current_week(week_index, week_filename):
+    ''' Judge the time of now, and read current week (it will change by time going)
+    :param week_index: return of wiz_week_index()
+        [type] dict.list
+    :param week_filename: return of wiz_week_index()
+        [type] dict.list
+
+    :return kt_current_week: kind time current week
+        [type] pd.DataFrame
+    '''
+    year_number = int(datetime.datetime.now().year)
+    week_number = int(datetime.datetime.now().strftime("%W"))
+
+    if week_number in week_index[year_number]:
+        list_id = week_index[year_number].index(week_number)
+        this_week_file_path = os.path.join(wiz_dir, str(year_number),
+                                           week_filename[year_number][list_id])
+        kt_current_week = read_one_file(this_week_file_path)
+    else:
+        print("[Warning]: Can not find current week's record, please add a new weekery note in [Wiz Note]")
+        kt_current_week = pd.DataFrame(columns=['fun', 'rest', 'work','compel', 'useless', 'sleep'])
+
+    return kt_current_week
 
 
-def reload_kind_data(wiz_path_folder):
-    kt_total = pd.DataFrame(columns=['fun', 'rest', 'work',
-                                            'compel', 'useless', 'sleep'])
-    folder_contents = os.listdir(wiz_path_folder)
+def read_former_weeks(week_index, week_filename):
+    '''
+    :param week_index:
+    :param week_filename:
+    :return:
+    '''
+    kt_former_weeks = pd.DataFrame(columns=['fun', 'rest', 'work', 'compel', 'useless', 'sleep'])
+    year_number = int(datetime.datetime.now().year)
+    week_number = int(datetime.datetime.now().strftime("%W"))
 
-    for year_folder in folder_contents:
-        wiz_path_folder_comb = os.path.join(wiz_path_folder, year_folder)
-        if os.path.isfile(wiz_path_folder_comb):
-            continue
+    for key in week_index.keys():
+        if key < year_number:
+            for week in week_index[key]:
+                id = week_index[key].index(week)
+                former_week_file_path = os.path.join(wiz_dir, str(key),
+                                                     week_filename[key][id])
+                kt_current_one_week = read_one_file(former_week_file_path)
+                kt_former_weeks = kt_former_weeks.append(kt_current_one_week)
+        elif key == year_number:
+            for week in week_index[key]:
+                if week < week_number:
+                    id = week_index[key].index(week)
+                    former_week_file_path = os.path.join(wiz_dir, str(key),
+                                                         week_filename[key][id])
+                    kt_current_one_week = read_one_file(former_week_file_path)
+                    kt_former_weeks = kt_former_weeks.append(kt_current_one_week)
+                else:
+                    break
         else:
-            # read year folder one by one
-            kt_folder = read_year_folder(wiz_path_folder_comb)
-            kt_total = kt_total.append(kt_folder)
+            break
 
-    kt_total = kt_total.fillna(0)
-    kt_total.to_pickle('kind_time_total.pkl')
+    return kt_former_weeks
 
-    return kt_total
 
+def merge_dataframe(df_old, df_new):
+    '''
+    :param df_old: the dataframe used as background
+    :param df_new: the dataframe to cover old background
+
+    :return df_latest: the merged dataframe
+
+    :examples:
+    # >>> import pandas as pd
+    # >>> old = pd.DataFrame({'A': [1., 4., 7.], 'B': [2., 5., 9.], 'C': [3., 6., 8.]})
+    # >>> old.index = ['12-2', '12-3', '12-4']
+    # >>> old
+    #       A	B	C
+    # 12-2	1.0	2.0	3.0
+    # 12-3	4.0	5.0	6.0
+    # 12-4	7.0	9.0	8.0
+    # >>> new = pd.DataFrame({'A': [1., 4.], 'B': [2., 5.], 'C': [3., 6.]})
+    # >>> new.index = ['12-4', '12-5']
+    # >>> new
+    #       A	B	C
+    # 12-4	1.0	2.0	3.0
+    # 12-5	4.0	5.0	6.0
+    # >>> latest = merge_dataframe(old, new)
+    # >>> latest
+    #       A	B	C
+    # 12-2	1.0	2.0	3.0
+    # 12-3	4.0	5.0	6.0
+    # 12-4	1.0	2.0	3.0
+    # 12-5	4.0	5.0	6.0
+    '''
+    for id in df_new.index:
+        if id in df_old.index:
+            df_old = df_old.drop(id)
+    df_latest = pd.concat([df_old, df_new])
+
+    return df_latest
 
 def kind_plot(df_month, df_week):
     # =============== Plot preparation ===================
@@ -119,20 +250,31 @@ if __name__ == '__main__':
     loop1 = True
     loop2 = True
     while loop1:
-        reload = input("[Input  ]: Using cached data or reload latest data? (c/r):")
-        if reload == 'c':
-            if os.path.exists('kind_time_total.pkl'):
-                kind_time_total = pd.read_pickle('kind_time_total.pkl')
+        week_index, week_filename = wiz_week_index(wiz_dir)
+        reload = input("[Input  ]: Load latest week's data (default) or refresh former data? (d/r):")
+        if reload == 'd':
+            # generate new version cached data
+            if os.path.exists('kind_time_cache.pkl'):
+                kt_former_data = pd.read_pickle('kind_time_cache.pkl')
+                kt_current_week = read_current_week(week_index, week_filename)
+                kt_merge = merge_dataframe(kt_former_data,kt_current_week)
             else:
                 print('[Warning]: Cached data not exist, reload data from wiz notes')
-                kind_time_total = reload_kind_data(wiz_dir)
+                kt_former_data = read_former_weeks(week_index, week_filename)
+                kt_current_week = read_current_week(week_index, week_filename)
+                kt_merge = merge_dataframe(kt_former_data, kt_current_week)
             loop1 = False
         elif reload == 'r':
-            kind_time_total = reload_kind_data(wiz_dir)
+            kt_former_data = read_former_weeks(week_index, week_filename)
+            kt_current_week = read_current_week(week_index, week_filename)
+            kt_merge = merge_dataframe(kt_former_data, kt_current_week)
             loop1 = False
         else:
+            print('[Warning]: Please input only "d" or "r"')
+            kt_merge= pd.DataFrame(columns=['fun', 'rest', 'work', 'compel', 'useless', 'sleep'])
 
-            print('[Warning]: Please input only "c" or "r"')
+        kind_time_total = kind_time_total.append(kt_merge)
+        kind_time_total.to_pickle('kind_time_cache.pkl')
 
     # =========== draw picture interface ================
     # == Default show ==
