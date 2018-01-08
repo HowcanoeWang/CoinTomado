@@ -137,11 +137,12 @@ def table2dataframe(html, color_kind=None, header='off'):
                     attrs = td.attrs
 
                 if td.string == None:
-                    for sr in td.children:
-                        if sr.string:
-                            string = str(sr.string)
-                        else:
-                            string = np.nan
+                    string = ''
+                    for item in td.contents:
+                        if isinstance(item, bs4.element.NavigableString):
+                            string += str(item)
+                    if string == '':
+                        string = np.nan
                 else:
                     string = td.string
 

@@ -62,15 +62,43 @@ def wiz_week_index(wiz_path_folder):
 def read_one_file(file_path):
     ''' read the given weekery wiz file into a required format pd.DataFrame
     :param file_path: the path of wiz file to read
+    :return df_string: DataFrame to store the time serious
+        [type] pd.DataFrame
+        [e.g.] date    |0:00 |0:30 |1:00 |...|23:00|23:30|
+               2017/9/1| str | str | str |...| str | str |
+               2017/9/2| str | str | str |...| str | str |
+    :return df_kind: DataFrame to store the time kind
+        [type] pd.DataFrame
+        [e.g.] date    | 0:00  | 0:30  |1:00 |...|23:00|23:30|
+               2017/9/1|useless|useless|sleep|...|sleep|sleep|
+               2017/9/2|sleep  | sleep |sleep|...|sleep|sleep|
+    :return week_notes:
+        [type] dict.key.int; dict.list.str
+        [e.g.] {2017: ['note_string1', 'note_string2', 'note_string3'],
+                2018: []}
+    # will be removed in the future
     :return kind_time: simple dataframe using data from color_kind
         [type] pd.DataFrame
         [e.g.] date    |sleep|fun|rest|work|compel|useless|
                2017/9/1|7.5  |3.5|4.5 |3.5 |0.5   |0.5    |
                2017/9/2|7.5  |3.5|4.5 |3.5 |0.5   |0.5    |
+    :return sleep_time: simple dataframe to record sleep time
+        [type] pd.DataFrame
+        [e.g.] date    |start|send |total|
+               2017/9/1|22:30|07:00|8.5  |
     '''
     # split path and file name
     _, file_name = os.path.split(file_path)
     # set container
+    time_columns = ['00:00', '00:30', '01:00', '01:30', '02:00', '02:30', '03:00', '03:30',
+                    '04:00', '04:30', '05:00', '05:30', '06:00', '06:30', '07:00', '07:30',
+                    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+                    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+                    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+                    '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30']
+    df_kind = pd.DataFrame(columns=time_columns)
+    df_string = pd.DataFrame(columns=time_columns)
+
     kind_time = pd.DataFrame(columns=['fun', 'rest', 'work',
                                       'compel', 'useless', 'sleep'])
 
@@ -81,9 +109,14 @@ def read_one_file(file_path):
     df_list = wiz_core.table2dataframe(soup_list[0], color_kind)
     
     # remove first row 'table head' and first column 'time head'
-    # df_list[0] is this wiz file
-    # df_list[0][1] is the second table in that wiz_file
-    data = df_list[0][1].drop(0, axis=1).drop(0, axis=0)
+    # df_list[0] is this wiz file first table
+    # df_list[0][0] is the df.string in former table
+    # df_list[0][1] is the df.kind in former table
+    string_data = df_list[0][0].drop(0, axis=1).drop(0, axis=0)
+    kind_data = df_list[0][1].drop(0, axis=1).drop(0, axis=0)
+
+    # to be removed in the future
+    data = kind_data
 
     # get time_range
     year = r'20' + file_name[0:2] + '.'
@@ -99,19 +132,34 @@ def read_one_file(file_path):
                 # skip columns all NaN
                 rm.append(n)
                 continue
+
+            # to be removed to other place in the future for hours count
             one_day = data.iloc[:, n]
             num = one_day.value_counts() * 0.5
             kind_time = kind_time.append(num)
 
+            # insert here
+            one_day_string = string_data.iloc[:, n]
+            df_string = df_string.append(one_day_string)
+            one_day_kind = kind_data.iloc[:, n]
+            df_kind = df_kind.append(one_day_kind) # raise RuntimeWarning
+
+
         dates = dates.delete(rm)
+        # to be removed in the future
         kind_time.index = dates
+
+        # insert here
+        df_string.index = dates
+        df_kind.index = dates
+
     except ValueError:     # judge whether wiz.file title correct
         print('[Warning]: Wiz file name['+ file_name +'] invalid, please check wiz folder and rename it!')
                                                    
-    return kind_time
+    return kind_time  #, df_string, df_kind
 
     
-def read_current_week(week_index, week_filename):
+def read_recent_week(week_index, week_filename):
     ''' Judge the time of now, and read current week (it will change by time going)
     :param week_index: return of wiz_week_index()
         [type] dict.list
@@ -124,14 +172,29 @@ def read_current_week(week_index, week_filename):
     year_number = int(datetime.datetime.now().year)
     week_number = int(datetime.datetime.now().strftime("%W"))
 
-    if week_number in week_index[year_number]:
-        list_id = week_index[year_number].index(week_number)
-        this_week_file_path = os.path.join(wiz_dir, str(year_number),
-                                           week_filename[year_number][list_id])
-        kt_current_week = read_one_file(this_week_file_path)
+    if year_number in week_index.keys():
+        if week_number in week_index[year_number]:
+            list_id = week_index[year_number].index(week_number)
+            this_week_file_path = os.path.join(wiz_dir, str(year_number),
+                                               week_filename[year_number][list_id])
+            kt_current_week = read_one_file(this_week_file_path)
+            if list_id - 1 >= 0:    # have previous week
+                former_week_file_path = os.path.join(wiz_dir, str(year_number),
+                                                     week_filename[year_number][list_id - 1])
+                kt_former_week = read_one_file(former_week_file_path)
+                kt_current_week = kt_current_week.append(kt_former_week)
+            else:    # the first week of this year, load last year's last week
+                if year_number -1 in week_index.keys():
+                    former_week_file_path = os.path.join(wiz_dir, str(year_number - 1),
+                                                         week_filename[year_number - 1][-1])
+                    kt_former_week = read_one_file(former_week_file_path)
+                    kt_current_week = kt_current_week.append(kt_former_week)
+        else:
+            print("[Warning]: Can not find current week's record, please add a new weekery note in [Wiz Note]")
+            kt_current_week = pd.DataFrame(columns=['fun', 'rest', 'work','compel', 'useless', 'sleep'])
     else:
-        print("[Warning]: Can not find current week's record, please add a new weekery note in [Wiz Note]")
-        kt_current_week = pd.DataFrame(columns=['fun', 'rest', 'work','compel', 'useless', 'sleep'])
+        print("[Warning]: Can not find current year's record, please add a new folder named current year in [Wiz Note]")
+        kt_current_week = pd.DataFrame(columns=['fun', 'rest', 'work', 'compel', 'useless', 'sleep'])
 
     return kt_current_week
 
@@ -207,6 +270,15 @@ def merge_dataframe(df_old, df_new):
 
     return df_latest
 
+
+def analyse(df_string, df_kind):
+    '''
+    :param df_string:
+    :param df_kind:
+    :return: dataframe for 'kind_plot'
+    '''
+    pass
+
 def kind_plot(df_month, df_week):
     # =============== Plot preparation ===================
     plt.style.use('ggplot')
@@ -256,17 +328,17 @@ if __name__ == '__main__':
             # generate new version cached data
             if os.path.exists('kind_time_cache.pkl'):
                 kt_former_data = pd.read_pickle('kind_time_cache.pkl')
-                kt_current_week = read_current_week(week_index, week_filename)
+                kt_current_week = read_recent_week(week_index, week_filename)
                 kt_merge = merge_dataframe(kt_former_data,kt_current_week)
             else:
                 print('[Warning]: Cached data not exist, reload data from wiz notes')
                 kt_former_data = read_former_weeks(week_index, week_filename)
-                kt_current_week = read_current_week(week_index, week_filename)
+                kt_current_week = read_recent_week(week_index, week_filename)
                 kt_merge = merge_dataframe(kt_former_data, kt_current_week)
             loop1 = False
         elif reload == 'r':
             kt_former_data = read_former_weeks(week_index, week_filename)
-            kt_current_week = read_current_week(week_index, week_filename)
+            kt_current_week = read_recent_week(week_index, week_filename)
             kt_merge = merge_dataframe(kt_former_data, kt_current_week)
             loop1 = False
         else:
@@ -289,6 +361,7 @@ if __name__ == '__main__':
         kind_time_month.index = kind_time_month.index.to_period('M')
         # group data by week
         kind_time_week = kind_time_year2show.resample('W').mean().dropna(axis=0, how='all')
+        #kind_time_week = kind_time_year2show.resample('W').mean().fillna(0)
         kind_time_week.index = kind_time_week.index.week
         # plot show
         kind_plot(kind_time_month, kind_time_week.iloc[-10:])
