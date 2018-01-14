@@ -198,4 +198,5 @@ def table2dataframe(html, color_kind=None, header='off'):
                 skip_index[r, c] = True
                 
         df_list.append([df, kd])
+        
     return df_list
