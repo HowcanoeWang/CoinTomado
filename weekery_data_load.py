@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import os, sys
+import os
 import wiz_core
-import datetime
+import pickle
 import pandas as pd
-import matplotlib.pyplot as plt
+from weekery_settings import load_config
 
 
 def wiz_week_index(wiz_path_folder):
@@ -203,6 +203,13 @@ def load_data(part_load=True):
 
     return db_string, db_kind, db_sleep_time, db_notes
 
+def save_pickle():
+    weekery_database = {'db_string':color_kind,
+                        'db_kind':kind_columns}
+    output = open('data.pkl', 'wb')
+    pickle.dump(weekery_database, output, -1)
+    output.close()
+
 
 if __name__ == "__main__":
     # custom color kind
@@ -222,6 +229,8 @@ if __name__ == "__main__":
                     '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30']
 
     # get folder path
-    wiz_dir = wiz_core.load_config('weekery_folder')
+    wiz_dir = load_config('weekery_folder')
 
     db_string, db_kind, _, _ = load_data()
+    
+    save_pickle()
