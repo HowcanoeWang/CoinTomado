@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-import wiz_core
 import pickle
+import wiz_core
 import pandas as pd
-from weekery_settings import load_config
+from config import Config
+
 
 
 def wiz_week_index(wiz_path_folder):
@@ -16,7 +17,6 @@ def wiz_week_index(wiz_path_folder):
             [type] list.str
             [e.g.] ['2017/17[11.27-12.03]W48.ziw', '2017/17[12.04-12.10]W49.ziw', '2017/17[12.11-12.17]W50.ziw']
     """
-
     folder_contents = os.listdir(wiz_path_folder)
     # [type] list.str
     # [e.g.] ['2017', '2018', 'wizfolder.ini']
@@ -134,7 +134,7 @@ def read_weeks(week_filenames, order="default"):
         length = len(read_list)
         for i, week_file in enumerate(read_list):
             print(str(round(i / length * 100, 2)) + r'%')
-            week_file_path = os.path.join(wiz_dir, week_file)
+            week_file_path = os.path.join(work_dir, week_file)
             df_string, df_kind, sleep_time, notes = read_one_file(week_file_path)
 
             df_string_weeks = df_string_weeks.append(df_string)
@@ -182,10 +182,11 @@ def merge_dataframe(df_old, df_new):
 
 
 def load_data(part_load=True):
-    week_filenames = wiz_week_index(wiz_dir)
-    if os.path.exists('weekery_database.xls') and part_load:
-        db_string = pd.read_excel('weekery_database.xls', 'db_string')
-        db_kind = pd.read_excel('weekery_database.xls', 'db_kind')
+    week_filenames = wiz_week_index(work_dir)
+    xls_path = cache_dir + '/weekery_database.xls'
+    if os.path.exists(xls_path) and part_load:
+        db_string = pd.read_excel(xls_path, 'db_string')
+        db_kind = pd.read_excel(xls_path, 'db_kind')
 
         db_string_new, db_kind_new, db_sleep_time_new, db_notes_new = read_weeks(week_filenames)
 
@@ -196,7 +197,7 @@ def load_data(part_load=True):
     else:
         db_string, db_kind, db_sleep_time, db_notes = read_weeks(week_filenames, order="all")
 
-    writer = pd.ExcelWriter('weekery_database.xls', engine='xlwt')
+    writer = pd.ExcelWriter(xls_path, engine='xlwt')
     db_string.to_excel(writer, 'db_string', engine='xlwt')
     db_kind.to_excel(writer, 'db_kind', engine='xlwt')
     writer.save()
@@ -229,8 +230,7 @@ if __name__ == "__main__":
                     '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30']
 
     # get folder path
-    wiz_dir = load_config('weekery_folder')
+    work_dir = Config().work_dir
+    cache_dir = Config().cache_dir
 
     db_string, db_kind, _, _ = load_data()
-    
-    save_pickle()
