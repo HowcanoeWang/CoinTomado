@@ -2,7 +2,7 @@ import datetime
 import calendar
 
 
-class Controls():
+class Controls(object):
     y = int(datetime.datetime.now().year)
     m = int(datetime.datetime.now().month)
     w = int(datetime.datetime.now().strftime("%W"))
@@ -10,19 +10,16 @@ class Controls():
     n = 7
     mod = 'w'
 
-
     def __init__(self):
         self.mod = 'w'
         self._date_range()
 
-
-    def _add_months(self, sourcedate, months):
-        month = sourcedate.month - 1 + months
-        year = sourcedate.year + month // 12
+    def _add_months(self, source_date, months):
+        month = source_date.month - 1 + months
+        year = source_date.year + month // 12
         month = month % 12 + 1
-        day = min(sourcedate.day,calendar.monthrange(year,month)[1])
-        return datetime.date(year,month,day)
-
+        day = min(source_date.day, calendar.monthrange(year, month)[1])
+        return datetime.date(year, month, day)
     
     def _date_range(self):
         if self.mod == 'd':
@@ -44,26 +41,21 @@ class Controls():
         else:
             pass
 
-
     def days(self):
         self.mod = 'd'
         self._date_range()
-
 
     def weeks(self):
         self.mod = 'w'
         self._date_range()
 
-
     def months(self):
         self.mod = 'm'
         self._date_range()
 
-
     def years(self):
         self.mod = 'y'
         pass
-
 
     def previous(self):
         if self.mod == 'd':
@@ -95,7 +87,6 @@ class Controls():
         else:
             pass
 
-
     def next(self):
         if self.mod == 'd':
             now = datetime.date(self.y, self.m, self.d)
@@ -126,12 +117,10 @@ class Controls():
         else:
             pass
 
-
     def plus(self):
         self.n += 1
         self._date_range()
         pass
-
 
     def minus(self):
         if self.n - 1 > 0:
@@ -140,16 +129,14 @@ class Controls():
         else:
             print("Minimum number has been met!")
         pass
-
-
         
 
 if __name__ == '__main__':
     ctrl = Controls()
     loop = True
     while loop:
-        print('>>>',ctrl.y, ctrl.m, ctrl.d, '[W'+str(ctrl.w)+'], Mod:'+ctrl.mod, 'n='+str(ctrl.n),
-              '\n>>> ShowRange:[', ctrl.op.strftime('%y-%m-%d'), ',',ctrl.ed.strftime('%y-%m-%d'), ']')
+        print('>>>', ctrl.y, ctrl.m, ctrl.d, '[W'+str(ctrl.w)+'], Mod:'+ctrl.mod, 'n='+str(ctrl.n),
+              '\n>>> ShowRange:[', ctrl.op.strftime('%Y%m%d'), ',', ctrl.ed.strftime('%Y%m%d'), ']')
         cmd = input('Please input command [d, w, m, <, >, +, -, q]: ')
         if cmd == 'd':
             ctrl.days()

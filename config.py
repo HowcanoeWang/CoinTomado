@@ -9,7 +9,7 @@ from tkinter.simpledialog import askinteger
 from tkinter.messagebox import showinfo, showwarning, askyesno
 
 
-class Config:
+class Config(object):
     """
     path = .../*.txt
     dir = .../somefolder
@@ -21,40 +21,41 @@ class Config:
     user_email = 'your_wiz_account_email@web.com'
     weekery_dir = r'/My Weekery'
     work_dir = ''
-    
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        filename=os.path.join(cache_dir,'weekery.log'),
-                        filemode='a')
-    
+
     def __init__(self):
         # create cache folder
-        logging.info('\n\n'+'='*5 + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '='*5)
+        mkdir1 = False
+        mkdir2 = False
         if not os.path.exists('C:/ProgramData'):
             os.mkdir('C:/ProgramData')
+            mkdir1 = True
             os.mkdir(self.cache_dir)
-            logging.info('C:/ProgramData not exist, created successfully')
-            logging.info(self.cache_dir + ' not exist, created successfully')   
+            mkdir2 = True
         else:
             if not os.path.exists(self.cache_dir):
                 os.mkdir(self.cache_dir)
-                logging.info(self.cache_dir + ' not exist, created successfully')
-                
+                mkdir2 = True
+
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S',
+                            filename=os.path.join(self.cache_dir, 'weekery.log'),
+                            filemode='a')
+        logging.info('\n\n' + '=' * 5 + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '=' * 5)
+        if mkdir1:
+            logging.info('C:/ProgramData not exist, created successfully')
+        if mkdir2:
+            logging.info(self.cache_dir + ' not exist, created successfully')
+
         if not os.path.exists(self.config_path):
-            logging.info(self.config_path + 'not exist, launch _initialize_config')
             self._initialize_config()
         else:
-            logging.info(self.config_path + ' esixt, launch _read_config')
             self._read_config()
-        
     
     def _initialize_config(self):
         """
         Just read >>> [Default] part codes for main frame
         """
-        # config.txt not exists
-        logging.info('Custom config file "config.txt" not exist, creating')
     # >>> [Default] select wiz data folder and it is true WizNote data folder
         if os.path.exists(self.wiz_dir) and os.path.exists(self.wiz_dir + '/Wiz.log') and os.path.exists(self.wiz_dir + '/Data'):
             wiz_dir = self.wiz_dir
@@ -62,12 +63,13 @@ class Config:
         else:
             showinfo('初始化：第1步(共5步)', 
                      '选择您为知笔记的本地数据存储路径\n详见为知笔记->设置v->选项->数据存储')
+            wiz_dir = ''
             loop = True
             while loop:
                 wiz_dir = askdirectory(initialdir=r'C:/')
                 if not wiz_dir:
                     logging.warning('You do not select any folder!')
-                    ans = askyesno('警告','您没有选择文件夹,重新选择？')
+                    ans = askyesno('警告', '您没有选择文件夹,重新选择？')
                     if not ans:
                         logging.info('Gave up folder selection')
                         root.destroy()
@@ -82,7 +84,7 @@ class Config:
                         root.destroy()
                         return
                     else:
-                        ans = askyesno('警告','此文件夹非为知笔记数据文件夹, 重新选择？')
+                        ans = askyesno('警告', '此文件夹非为知笔记数据文件夹, 重新选择？')
                         if not ans:
                             logging.info('Gave up reselect wiz data folder')
                             root.destroy()
@@ -157,14 +159,13 @@ class Config:
                 
                 loop = False
             else:  # cancel selection
-                ans = askyesno('警告','您没有选择文件夹,重新选择？')
+                ans = askyesno('警告', '您没有选择文件夹,重新选择？')
                 if not ans:
                     root.destroy()
                     return
                 
         self._write_config()
-        
-    
+
     def _read_config(self):
         config = ConfigParser()
         config.read(self.config_path)
@@ -190,7 +191,6 @@ class Config:
                 logging.info('user selected to initialize config automatically')
                 self._initialize_config()
     
-    
     def _write_config(self):
         config = ConfigParser()
         config.read(self.config_path)
@@ -203,18 +203,17 @@ class Config:
         with open(self.config_path, 'w') as f:
             config.write(f)
 
-        logging.info('Custom config file "config.txt" has been created')
-        showinfo('初始化：第4步(共5步)','配置文件初始化完成！')
-    
-    
+        logging.info('Custom config file "config.ini" has been created')
+        showinfo('初始化：第4步(共5步)', '配置文件初始化完成！')
+
     def _set_config(self):
         pass
 
 
 if __name__ == '__main__':
-    #load_config('weekery_folder')
+    # load_config('weekery_folder')
     root = Tk()
     root.title('ImageDBH')
     root.config(bg='white')
-    config = Config()
+    conf = Config()
     root.mainloop()

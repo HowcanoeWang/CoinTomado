@@ -89,7 +89,6 @@ def read_one_file(file_path):
     day_op = file_name[3:8]
     day_ed = file_name[9:14]
 
-
     try:
         dates = pd.date_range(year + day_op, year + day_ed)
         # set removed time_range
@@ -205,8 +204,7 @@ def load_data(part_load=True):
     return db_string, db_kind, db_sleep_time, db_notes
 
 def save_pickle():
-    weekery_database = {'db_string':color_kind,
-                        'db_kind':kind_columns}
+    weekery_database = {'db_string':color_kind, 'db_kind':kind_columns}
     output = open('data.pkl', 'wb')
     pickle.dump(weekery_database, output, -1)
     output.close()
