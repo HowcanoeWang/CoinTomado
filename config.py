@@ -2,7 +2,7 @@
 import os
 import logging
 import datetime
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 from tkinter.simpledialog import askinteger
@@ -21,6 +21,7 @@ class Config(object):
     user_email = 'your_wiz_account_email@web.com'
     weekery_dir = r'/My Weekery'
     work_dir = ''
+    last_read = 20160000
 
     def __init__(self):
         # create cache folder
@@ -51,6 +52,8 @@ class Config(object):
             self._initialize_config()
         else:
             self._read_config()
+
+
     
     def _initialize_config(self):
         """
@@ -170,10 +173,19 @@ class Config(object):
         config = ConfigParser()
         config.read(self.config_path)
 
+        # basic configs
         self.wiz_dir = config.get('main', 'wiz_dir')
         self.user_email = config.get('main', 'user_email')
         self.weekery_dir = config.get('main', 'weekery_dir')
         self.language = config.get('main', 'language')
+
+        # extended configs
+        try:
+            self.last_read = config.getint('main', 'last_read')
+        except NoOptionError:
+            config.set('main', 'last_read', str(self.last_read))
+            with open(self.config_path, 'w') as f:
+                config.write(f)
         
         work_dir = self.wiz_dir + '\\Data\\' + self.user_email + self.weekery_dir
         if os.path.exists(work_dir):
@@ -199,15 +211,13 @@ class Config(object):
         config.set('main', 'user_email', self.user_email)
         config.set('main', 'weekery_dir', self.weekery_dir)
         config.set('main', 'language', self.language)
+        config.set('main', 'last_read', self.last_read)
         
         with open(self.config_path, 'w') as f:
             config.write(f)
 
         logging.info('Custom config file "config.ini" has been created')
         showinfo('初始化：第4步(共5步)', '配置文件初始化完成！')
-
-    def _set_config(self):
-        pass
 
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ from config import Config
 
 
 class DB(object):
-    db_path = 'default.db'
     __tablename__ = 'COMPANY'
     __column__ = 'ID, NAME, AGE, ADDRESS, SALARY'
     init_str = 'CREATE TABLE ' + __tablename__ + '''
@@ -17,29 +16,25 @@ class DB(object):
                  ADDRESS CHAR(50),
                  SALARY  REAL);'''
 
-    def __init__(self, db_path='default.db'):
-        self.db_path = db_path
-        init = False
-        if not os.path.exists(db_path):
-            init = True
-        self.conn = sqlite3.connect(self.db_path)
-        logging.info('Open database [' + self.db_path + '] successfully')
+    def __init__(self, conn):
+        self.conn = conn
         self.c = self.conn.cursor()
 
-        if init:
-            self._initialize()
-
     def _initialize(self):
-        self.c.execute(self.init_str)
-        logging.info('Table ' + self.__tablename__ + ' created successfully')
+        try:
+            self.c.execute(self.init_str)
+            logging.info('table ' + self.__tablename__ + ' has been created')
+            self.commit()
+        except:
+            logging.exception(self.init_str)
         pass
 
     def _insert(self, value_tuple):
         sql = 'INSERT INTO ' + self.__tablename__ + '(' + self.__column__ + ') VALUES' + str(value_tuple)
         try:
             self.c.execute(sql)
-        except sqlite3.OperationalError:
-            logging.error('sqlite3.OperationalError: unrecognized token:' + sql)
+        except:
+            logging.exception(sql)
 
     def _update(self, value_tuple):
         column_name = self.__column__.split(', ')
@@ -56,19 +51,29 @@ class DB(object):
         sql = 'UPDATE ' + self.__tablename__ + ' SET ' + set_str + ' WHERE ID = ' + str(value_tuple[0])
         try:
             self.c.execute(sql)
-        except sqlite3.OperationalError:
-            logging.error('sqlite3.OperationalError: unrecognized token:' + sql)
+        except:
+            logging.exception(sql)
 
-    def _select(self, column_names, id_tuple=None):
-        pass
+    def _select(self, column_str, id_tuple):
+        # column_str = 'ID, NAME, AGE, ADDRESS, SALARY'
+        sql = 'SELECT ' + column_str + ' FROM ' + self.__tablename__ + \
+              ' WHERE ID BETWEEN ' + str(id_tuple[0]) + ' AND ' + str(id_tuple[-1])
+        try:
+            result = self.c.execute(sql).fetchall()
+            return result
+        except:
+            logging.exception(sql)
 
     def add(self, value_tuple):
-        cursor = self.conn.execute('SELECT id from ' + self.__tablename__ +
-                                   ' WHERE ID=' + str(value_tuple[0])).fetchall()
-        if len(cursor) == 0:  # no result, use insert
-            self._insert(value_tuple)
-        else:  # have record, use update
-            self._update(value_tuple)
+        sql = 'SELECT id from ' + self.__tablename__ + ' WHERE ID=' + str(value_tuple[0])
+        try:
+            cursor = self.conn.execute(sql).fetchall()
+            if len(cursor) == 0:  # no result, use insert
+                self._insert(value_tuple)
+            else:  # have record, use update
+                self._update(value_tuple)
+        except:
+            logging.exception(sql)
 
     def drop_table(self):
         pass
@@ -78,26 +83,90 @@ class DB(object):
 
 
 class Days(DB):
-    pass
+    __tablename__ = 'DAYS'
+    __column__ = 'ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency'
+    init_str = 'CREATE TABLE ' + __tablename__ + '''
+                (ID        INT   NOT NULL    PRIMARY KEY,
+                 fun       REAL   NOT NULL,
+                 rest      REAL   NOT NULL,
+                 work      REAL   NOT NULL,
+                 compel    REAL   NOT NULL,
+                 useless   REAL   NOT NULL,
+                 sleep     REAL   NOT NULL,
+                 sleep_st  REAL,
+                 sleep_ed  REAL,        
+                 frequency CHAR(80));'''
+    """
+    from collections import Counter
+    >>> A = Counter({'a':1, 'b':2, 'c':3})
+    >>> B = Counter({'b':3, 'c':4, 'd':5})
+    >>> A + B
+    Counter({'c': 7, 'b': 5, 'd': 5, 'a': 1})
+    """
 
 
 class Weeks(DB):
-    pass
-
+    __tablename__ = 'WEEKS'
+    __column__ = 'ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency, notes'
+    init_str = 'CREATE TABLE ' + __tablename__ + '''
+                (ID        INT   NOT NULL    PRIMARY KEY,
+                 fun       REAL   NOT NULL,
+                 rest      REAL   NOT NULL,
+                 work      REAL   NOT NULL,
+                 compel    REAL   NOT NULL,
+                 useless   REAL   NOT NULL,
+                 sleep     REAL   NOT NULL,
+                 sleep_st  REAL,
+                 sleep_ed  REAL,        
+                 frequency CHAR(80),
+                 notes     CHAR(512));'''
 
 class Months(DB):
-    pass
+    __tablename__ = 'MONTHS'
+    __column__ = 'ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency'
+    init_str = 'CREATE TABLE ' + __tablename__ + '''
+                    (ID        INT   NOT NULL    PRIMARY KEY,
+                     fun       REAL   NOT NULL,
+                     rest      REAL   NOT NULL,
+                     work      REAL   NOT NULL,
+                     compel    REAL   NOT NULL,
+                     useless   REAL   NOT NULL,
+                     sleep     REAL   NOT NULL,
+                     sleep_st  REAL,
+                     sleep_ed  REAL,        
+                     frequency CHAR(80));'''
 
 
 if __name__ == '__main__':
     cfg = Config()
-    db = DB(cfg.cache_dir + '/weekery.db')
+    db_path = cfg.cache_dir + '/weekery.db'
+    init = False
+    if not os.path.exists(db_path):
+        init = True
+
+    conn = sqlite3.connect(db_path)
+    days = Days(conn)
+    weeks = Weeks(conn)
+    months = Months(conn)
 
     t = datetime.datetime.now()
-    # for i in range(1000):
-    #     db.insert((i, 'Paul', 32, 'California', 20000.00))
-    #
-    db.add((3, "Paul", 32, "California", 10000.00))
-    db.add((3000, 'Paul', 32, 'California', 30000.00))
-    db.commit()
+
+    if init:
+        days._initialize()
+        weeks._initialize()
+        months._initialize()
+
+
+    days.add((20170120, 5, 6, 3, 2, 1, 5, -1.5, 6.0, "{'a':1, 'b':2, 'c':3}"))
+    weeks.add((20170120, 5, 6, 3, 2, 1, 5, 2.5, 6.0, "{'a':1, 'b':2, 'c':3}", 'asdfasdfwefsdfsedfsdf'))
+
+    da_r = days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100))
+    we_r = weeks._select('ID, fun, rest, work, compel, useless, sleep, frequency, notes', (20170100, 20180100))
+
+
+    print(da_r)
+    print(we_r)
+
+    days.commit()
     print(datetime.datetime.now() - t)
+    conn.close()
