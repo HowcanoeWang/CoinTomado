@@ -2,7 +2,7 @@
 import os
 import logging
 import datetime
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 from tkinter import Tk
 from tkinter.filedialog import askdirectory
 from tkinter.simpledialog import askinteger
@@ -21,7 +21,6 @@ class Config(object):
     user_email = 'your_wiz_account_email@web.com'
     weekery_dir = r'/My Weekery'
     work_dir = ''
-<<<<<<< HEAD
     last_read = 20160000
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
@@ -30,8 +29,6 @@ class Config(object):
                   "rgb(254, 207, 156)": "compel",
                   "rgb(247, 182, 255)": "useless",
                   "rgb(238, 238, 238)": "sleep"}
-=======
->>>>>>> parent of 5763562... Sqlite3 models finished
 
     def __init__(self):
         # create cache folder
@@ -62,6 +59,8 @@ class Config(object):
             self._initialize_config()
         else:
             self._read_config()
+
+
     
     def _initialize_config(self):
         """
@@ -181,11 +180,11 @@ class Config(object):
         config = ConfigParser()
         config.read(self.config_path)
 
+        # basic configs
         self.wiz_dir = config.get('main', 'wiz_dir')
         self.user_email = config.get('main', 'user_email')
         self.weekery_dir = config.get('main', 'weekery_dir')
         self.language = config.get('main', 'language')
-<<<<<<< HEAD
 
         # extended configs
         extend = False
@@ -203,8 +202,6 @@ class Config(object):
         if extend:
             with open(self.config_path, 'w') as f:
                 config.write(f)
-=======
->>>>>>> parent of 5763562... Sqlite3 models finished
         
         work_dir = self.wiz_dir + '\\Data\\' + self.user_email + self.weekery_dir
         if os.path.exists(work_dir):
@@ -230,20 +227,14 @@ class Config(object):
         config.set('main', 'user_email', self.user_email)
         config.set('main', 'weekery_dir', self.weekery_dir)
         config.set('main', 'language', self.language)
-<<<<<<< HEAD
         config.set('main', 'last_read', self.last_read)
         config.set('main', 'color_kind', str(self.color_kind))
-=======
->>>>>>> parent of 5763562... Sqlite3 models finished
         
         with open(self.config_path, 'w') as f:
             config.write(f)
 
         logging.info('Custom config file "config.ini" has been created')
         showinfo('初始化：第4步(共5步)', '配置文件初始化完成！')
-
-    def _set_config(self):
-        pass
 
 
 if __name__ == '__main__':
