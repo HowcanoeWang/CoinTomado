@@ -142,3 +142,6 @@ def table2dataframe(html, color_kind=None, header='off'):
         df_list.append([df, kd])
         
     return df_list
+
+def read_notes(html):
+    return 'here is the notes that you read'

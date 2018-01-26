@@ -22,6 +22,13 @@ class Config(object):
     weekery_dir = r'/My Weekery'
     work_dir = ''
     last_read = 20160000
+    color_kind = {"rgb(182, 202, 255)": "NaN",
+                  "rgb(172, 243, 254)": "fun",
+                  "rgb(178, 255, 161)": "rest",
+                  "rgb(254, 244, 156)": "work",
+                  "rgb(254, 207, 156)": "compel",
+                  "rgb(247, 182, 255)": "useless",
+                  "rgb(238, 238, 238)": "sleep"}
 
     def __init__(self):
         # create cache folder
@@ -180,10 +187,19 @@ class Config(object):
         self.language = config.get('main', 'language')
 
         # extended configs
+        extend = False
         try:
             self.last_read = config.getint('main', 'last_read')
         except NoOptionError:
             config.set('main', 'last_read', str(self.last_read))
+            extend = True
+        try:
+            self.color_kind = eval(config.get('main', 'color_kind'))
+        except NoOptionError:
+            config.set('main', 'color_kind', str(self.color_kind))
+            extend = True
+        # refresh config
+        if extend:
             with open(self.config_path, 'w') as f:
                 config.write(f)
         
@@ -212,6 +228,7 @@ class Config(object):
         config.set('main', 'weekery_dir', self.weekery_dir)
         config.set('main', 'language', self.language)
         config.set('main', 'last_read', self.last_read)
+        config.set('main', 'color_kind', str(self.color_kind))
         
         with open(self.config_path, 'w') as f:
             config.write(f)

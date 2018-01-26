@@ -7,26 +7,66 @@ from config import Config
 
 
 class DB(object):
-    __tablename__ = 'COMPANY'
-    __column__ = 'ID, NAME, AGE, ADDRESS, SALARY'
-    init_str = 'CREATE TABLE ' + __tablename__ + '''
-                (ID      INT       NOT NULL    PRIMARY KEY,
-                 Name    TEXT      NOT NULL,
-                 AGE     INT       NOT NULL,
-                 ADDRESS CHAR(50),
-                 SALARY  REAL);'''
+    models = {'DAYS': {}, 'WEEKS': {}, 'MONTHS':{}}
+    
+    models['DAYS'] = {'tablename': 'DAYS',
+                      'column': 'ID, fun, rest, work, compel, useless, \
+                                 sleep, sleep_st, sleep_ed, frequency',
+                      'attr': '''(ID        INT   NOT NULL    PRIMARY KEY,
+                                 fun       REAL   NOT NULL,
+                                 rest      REAL   NOT NULL,
+                                 work      REAL   NOT NULL,
+                                 compel    REAL   NOT NULL,
+                                 useless   REAL   NOT NULL,
+                                 sleep     REAL   NOT NULL,
+                                 sleep_st  REAL,
+                                 sleep_ed  REAL,        
+                                 frequency CHAR(80))'''}
+    
+    models['WEEKS'] = {'tablename': 'WEEKS',
+                       'column': 'ID, fun, rest, work, compel, useless, sleep, \
+                                  sleep_st, sleep_ed, frequency, notes',
+                       'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
+                                 fun       REAL   NOT NULL,
+                                 rest      REAL   NOT NULL,
+                                 work      REAL   NOT NULL,
+                                 compel    REAL   NOT NULL,
+                                 useless   REAL   NOT NULL,
+                                 sleep     REAL   NOT NULL,
+                                 sleep_st  REAL,
+                                 sleep_ed  REAL,        
+                                 frequency CHAR(80),
+                                 notes     CHAR(512))'''}
 
-    def __init__(self, conn):
+    models['MONTHS'] = {'tablename': 'MONTHS',
+                        'column': 'ID, fun, rest, work, compel, useless, sleep, \
+                                   sleep_st, sleep_ed, frequency',
+                        'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
+                                  fun       REAL   NOT NULL,
+                                  rest      REAL   NOT NULL,
+                                  work      REAL   NOT NULL,
+                                  compel    REAL   NOT NULL,
+                                  useless   REAL   NOT NULL,
+                                  sleep     REAL   NOT NULL,
+                                  sleep_st  REAL,
+                                  sleep_ed  REAL,        
+                                  frequency CHAR(80))'''} 
+
+    def __init__(self, conn, modelname):     
         self.conn = conn
         self.c = self.conn.cursor()
+        self.__tablename__ = self.models[modelname]['tablename']
+        self.__column__ = self.models[modelname]['column']
+        self.__attr__ = self.models[modelname]['attr']
 
     def _initialize(self):
+        sql = 'CREATE TABLE ' + self.__tablename__ + self.__attr__
         try:
-            self.c.execute(self.init_str)
+            self.c.execute(sql)
             logging.info('table ' + self.__tablename__ + ' has been created')
             self.commit()
         except:
-            logging.exception(self.init_str)
+            logging.exception(sql)
         pass
 
     def _insert(self, value_tuple):
@@ -80,62 +120,7 @@ class DB(object):
 
     def commit(self):
         self.conn.commit()
-
-
-class Days(DB):
-    __tablename__ = 'DAYS'
-    __column__ = 'ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency'
-    init_str = 'CREATE TABLE ' + __tablename__ + '''
-                (ID        INT   NOT NULL    PRIMARY KEY,
-                 fun       REAL   NOT NULL,
-                 rest      REAL   NOT NULL,
-                 work      REAL   NOT NULL,
-                 compel    REAL   NOT NULL,
-                 useless   REAL   NOT NULL,
-                 sleep     REAL   NOT NULL,
-                 sleep_st  REAL,
-                 sleep_ed  REAL,        
-                 frequency CHAR(80));'''
-    """
-    from collections import Counter
-    >>> A = Counter({'a':1, 'b':2, 'c':3})
-    >>> B = Counter({'b':3, 'c':4, 'd':5})
-    >>> A + B
-    Counter({'c': 7, 'b': 5, 'd': 5, 'a': 1})
-    """
-
-
-class Weeks(DB):
-    __tablename__ = 'WEEKS'
-    __column__ = 'ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency, notes'
-    init_str = 'CREATE TABLE ' + __tablename__ + '''
-                (ID        INT   NOT NULL    PRIMARY KEY,
-                 fun       REAL   NOT NULL,
-                 rest      REAL   NOT NULL,
-                 work      REAL   NOT NULL,
-                 compel    REAL   NOT NULL,
-                 useless   REAL   NOT NULL,
-                 sleep     REAL   NOT NULL,
-                 sleep_st  REAL,
-                 sleep_ed  REAL,        
-                 frequency CHAR(80),
-                 notes     CHAR(512));'''
-
-class Months(DB):
-    __tablename__ = 'MONTHS'
-    __column__ = 'ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency'
-    init_str = 'CREATE TABLE ' + __tablename__ + '''
-                    (ID        INT   NOT NULL    PRIMARY KEY,
-                     fun       REAL   NOT NULL,
-                     rest      REAL   NOT NULL,
-                     work      REAL   NOT NULL,
-                     compel    REAL   NOT NULL,
-                     useless   REAL   NOT NULL,
-                     sleep     REAL   NOT NULL,
-                     sleep_st  REAL,
-                     sleep_ed  REAL,        
-                     frequency CHAR(80));'''
-
+        
 
 if __name__ == '__main__':
     cfg = Config()
@@ -145,9 +130,9 @@ if __name__ == '__main__':
         init = True
 
     conn = sqlite3.connect(db_path)
-    days = Days(conn)
-    weeks = Weeks(conn)
-    months = Months(conn)
+    days = DB(conn, 'DAYS')
+    weeks = DB(conn, 'WEEKS')
+    months = DB(conn, 'MONTHS')
 
     t = datetime.datetime.now()
 
