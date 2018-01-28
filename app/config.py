@@ -235,8 +235,20 @@ class Config(object):
 
         logging.info('Custom config file "config.ini" has been created')
         showinfo('初始化：第4步(共5步)', '配置文件初始化完成！')
-
-
+        
+    def update_config(self):
+        config = ConfigParser()
+        config.read(self.config_path)
+        config.set('main', 'wiz_dir', self.wiz_dir)
+        config.set('main', 'user_email', self.user_email)
+        config.set('main', 'weekery_dir', self.weekery_dir)
+        config.set('main', 'language', self.language)
+        config.set('main', 'last_read', str(self.last_read))
+        config.set('main', 'color_kind', str(self.color_kind))
+        
+        with open(self.config_path, 'w+') as f:
+            config.write(f)
+        
 if __name__ == '__main__':
     # load_config('weekery_folder')
     root = Tk()

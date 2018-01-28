@@ -37,7 +37,8 @@ class Controls(object):
             self.ed = ed_this_month
             self.op = self._add_months(st_this_month, - (self.n - 1))
         elif self.mod == 'y':
-            pass
+            self.ed = datetime.date(self.y,12,31)
+            self.op = datetime.date(self.y - (self.n - 1), 1, 1)
         else:
             pass
 
@@ -55,7 +56,7 @@ class Controls(object):
 
     def years(self):
         self.mod = 'y'
-        pass
+        self._date_range()
 
     def previous(self):
         if self.mod == 'd':
@@ -83,7 +84,13 @@ class Controls(object):
             self.w = int(previous.strftime('%W'))
             self._date_range()
         elif self.mod == 'y':
-            pass
+            now = datetime.date(self.y, self.m, self.d)
+            previous = now - datetime.timedelta(days=365)
+            self.y = int(previous.year)
+            self.m = int(previous.month)
+            self.d = int(previous.strftime('%d'))
+            self.w = int(previous.strftime('%W'))
+            self._date_range()
         else:
             pass
 
@@ -113,14 +120,19 @@ class Controls(object):
             self.w = int(afterwards.strftime('%W'))
             self._date_range()
         elif self.mod == 'y':
-            pass
+            now = datetime.date(self.y, self.m, self.d)
+            afterwards = now + datetime.timedelta(days=365)
+            self.y = int(afterwards.year)
+            self.m = int(afterwards.month)
+            self.d = int(afterwards.strftime('%d'))
+            self.w = int(afterwards.strftime('%W'))
+            self._date_range()
         else:
             pass
 
     def plus(self):
         self.n += 1
         self._date_range()
-        pass
 
     def minus(self):
         if self.n - 1 > 0:
@@ -128,7 +140,6 @@ class Controls(object):
             self._date_range()
         else:
             print("Minimum number has been met!")
-        pass
         
 
 if __name__ == '__main__':
@@ -144,6 +155,8 @@ if __name__ == '__main__':
             ctrl.weeks()
         elif cmd == 'm':
             ctrl.months()
+        elif cmd == 'y':
+            ctrl.years()
         elif cmd == '-':
             ctrl.minus()
         elif cmd == '+':

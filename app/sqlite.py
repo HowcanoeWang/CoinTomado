@@ -7,50 +7,64 @@ from config import Config
 
 
 class DB(object):
-    models = {'DAYS': {}, 'WEEKS': {}, 'MONTHS':{}}
+    models = {'DAYS': {}, 'WEEKS': {}, 'MONTHS':{}, 'YEARS':{}}
     
     models['DAYS'] = {'tablename': 'DAYS',
                       'column': 'ID, fun, rest, work, compel, useless, \
                                  sleep, sleep_st, sleep_ed, frequency',
                       'attr': '''(ID        INT   NOT NULL    PRIMARY KEY,
-                                 fun       REAL   NOT NULL,
-                                 rest      REAL   NOT NULL,
-                                 work      REAL   NOT NULL,
-                                 compel    REAL   NOT NULL,
-                                 useless   REAL   NOT NULL,
-                                 sleep     REAL   NOT NULL,
+                                 fun       REAL,
+                                 rest      REAL,
+                                 work      REAL,
+                                 compel    REAL,
+                                 useless   REAL,
+                                 sleep     REAL,
                                  sleep_st  REAL,
                                  sleep_ed  REAL,        
-                                 frequency CHAR(80))'''}
+                                 frequency CHAR(512))'''}
     
     models['WEEKS'] = {'tablename': 'WEEKS',
                        'column': 'ID, fun, rest, work, compel, useless, sleep, \
                                   sleep_st, sleep_ed, frequency, notes',
                        'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
-                                 fun       REAL   NOT NULL,
-                                 rest      REAL   NOT NULL,
-                                 work      REAL   NOT NULL,
-                                 compel    REAL   NOT NULL,
-                                 useless   REAL   NOT NULL,
-                                 sleep     REAL   NOT NULL,
+                                 fun       REAL,
+                                 rest      REAL,
+                                 work      REAL,
+                                 compel    REAL,
+                                 useless   REAL,
+                                 sleep     REAL,
                                  sleep_st  REAL,
                                  sleep_ed  REAL,        
-                                 frequency CHAR(80),
+                                 frequency CHAR(512),
                                  notes     CHAR(512))'''}
 
     models['MONTHS'] = {'tablename': 'MONTHS',
                         'column': 'ID, fun, rest, work, compel, useless, sleep, \
                                    sleep_st, sleep_ed, frequency',
                         'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
-                                  fun       REAL   NOT NULL,
-                                  rest      REAL   NOT NULL,
-                                  work      REAL   NOT NULL,
-                                  compel    REAL   NOT NULL,
-                                  useless   REAL   NOT NULL,
-                                  sleep     REAL   NOT NULL,
+                                  fun       REAL,
+                                  rest      REAL,
+                                  work      REAL,
+                                  compel    REAL,
+                                  useless   REAL,
+                                  sleep     REAL,
                                   sleep_st  REAL,
                                   sleep_ed  REAL,        
-                                  frequency CHAR(80))'''} 
+                                  frequency CHAR(512))'''} 
+    
+    models['YEARS'] = {'tablename': 'YEARS',
+                        'column': 'ID, fun, rest, work, compel, useless, sleep, \
+                                   sleep_st, sleep_ed, frequency',
+                        'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
+                                  fun       REAL,
+                                  rest      REAL,
+                                  work      REAL,
+                                  compel    REAL,
+                                  useless   REAL,
+                                  sleep     REAL,
+                                  sleep_st  REAL,
+                                  sleep_ed  REAL,        
+                                  frequency CHAR(512))'''} 
 
     def __init__(self, conn, modelname):     
         self.conn = conn
@@ -67,17 +81,16 @@ class DB(object):
             self.commit()
         except:
             logging.exception(sql)
-        pass
 
-    def _insert(self, value_tuple):
-        sql = 'INSERT INTO ' + self.__tablename__ + '(' + self.__column__ + ') VALUES' + str(value_tuple)
+    def _insert(self, value_tuple, column='self.__column__'):
+        sql = 'INSERT INTO ' + self.__tablename__ + '(' + column + ') VALUES' + str(value_tuple)
         try:
             self.c.execute(sql)
         except:
             logging.exception(sql)
 
-    def _update(self, value_tuple):
-        column_name = self.__column__.split(', ')
+    def _update(self, value_tuple, column='self.__column__'):
+        column_name = column.split(', ')
         set_str = ''
         for i, col in enumerate(column_name):
             if i == 0:   # skip id
@@ -104,14 +117,16 @@ class DB(object):
         except:
             logging.exception(sql)
 
-    def add(self, value_tuple):
+    def add(self, value_tuple, column='self.__column__'):
         sql = 'SELECT id from ' + self.__tablename__ + ' WHERE ID=' + str(value_tuple[0])
+        if column == 'self.__column__':
+            column = self.__column__
         try:
             cursor = self.conn.execute(sql).fetchall()
             if len(cursor) == 0:  # no result, use insert
-                self._insert(value_tuple)
+                self._insert(value_tuple, column)
             else:  # have record, use update
-                self._update(value_tuple)
+                self._update(value_tuple, column)
         except:
             logging.exception(sql)
 
@@ -144,12 +159,18 @@ if __name__ == '__main__':
 
     days.add((20170120, 5, 6, 3, 2, 1, 5, -1.5, 6.0, "{'a':1, 'b':2, 'c':3}"))
     weeks.add((20170120, 5, 6, 3, 2, 1, 5, 2.5, 6.0, "{'a':1, 'b':2, 'c':3}", 'asdfasdfwefsdfsedfsdf'))
-
-    da_r = days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100))
+    print(days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
+    
+    # specified test
+    days.add((20170121, "{'a':1, 'b':4, 'c':5}"), column='ID, frequency')
+    days.add((20170123, -2.5), column='ID, sleep_st')
+    print(days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
+    # null test
+    days.add((20170110, 5,6,7,8,9,2), 'ID, fun, rest, work, compel, useless, sleep')
+    print(days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
+    
     we_r = weeks._select('ID, fun, rest, work, compel, useless, sleep, frequency, notes', (20170100, 20180100))
 
-
-    print(da_r)
     print(we_r)
 
     days.commit()
