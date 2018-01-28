@@ -59,8 +59,7 @@ def wiz_week_index(cfg):
     return id_filenames, id_dates
 
 
-def read_one_file(cfg, year_file_name):
-    global days
+def read_one_file(cfg, days, year_file_name):
     """read the given weekery wiz file, store table DAYS into [datebase.db]
     :param year_file_name: file name to read
         [type] str
@@ -94,7 +93,7 @@ def read_one_file(cfg, year_file_name):
     
     # columns number not equal to title date range
     if ed - op != datetime.timedelta(string_data.shape[1] - 1):
-        showwarning("警告", '周记文件:[' + file_name + ']中,表格中的天数与标题时间段的天数不符, 请修改文件名')
+        showwarning("警告", '周记文件:[' + file_name + ']中,表格中的天数与标题时间段的天数不符, 请修改文件名后重新加载')
         return
     
     # generage date range list.int
@@ -218,11 +217,18 @@ def read_one_file(cfg, year_file_name):
     return notes
 
     
-def read_data(cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
-    global days, weeks, months, years
+def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
     cfg._read_config()
     last_date = cfg.last_read
     today = int(datetime.datetime.today().strftime('%Y%m%d'))
+
+    db_path = cfg.cache_dir + '/weekery.db'
+
+    conn = sqlite3.connect(db_path)
+    days = DB(conn, 'DAYS')
+    weeks = DB(conn, 'WEEKS')
+    months = DB(conn, 'MONTHS')
+    years = DB(conn, 'YEARS')
     
     read_list = []
     date_list = []
@@ -254,7 +260,7 @@ def read_data(cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
     pgb['maximum'] = len(read_list)
     for i, week_file in enumerate(read_list):
         # TABLE DAYS filled in this function
-        notes_list.append(read_one_file(cfg, week_file))
+        notes_list.append(read_one_file(cfg, days, week_file))
         # update progressbar
         pgb['value'] = i
         root.update()
@@ -284,10 +290,10 @@ def read_data(cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
     month_st = datetime.datetime.strptime(str(date_list[0][0]), '%Y%m%d')
     #month_st = datetime.datetime.strptime('20170203', '%Y%m%d')
     month_ed = datetime.datetime.today()
-    month_rk = set()
+    month_set = set()
     for i in range((month_ed - month_st).days):
-        month_rk.add((month_st + datetime.timedelta(i)).strftime("%Y%m"))
-    
+        month_set.add((month_st + datetime.timedelta(i)).strftime("%Y%m"))
+    month_rk = sorted(month_set)
     for month_str in month_rk:
         month_id = int(month_str + '15')
         month_st_id = int(month_str + '00')
@@ -323,6 +329,8 @@ def read_data(cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
             continue
         
     pgb['value'] = len(read_list)
+    conn.commit()
+    conn.close()
     
     if dialog:
         showinfo('初始化：第5步(共5步)', '周记文件读取完成！')
@@ -330,7 +338,7 @@ def read_data(cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
 def _meanimize(query_results, target_id):
     """
     [input] query_results: must in this format
-    >>> models._select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed')
+    >> models._select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed')
     """
     funs = [q[1] for q in query_results if q[1] != None]
     rests = [q[2] for q in query_results if q[2] != None]
@@ -364,39 +372,38 @@ def _meanimize(query_results, target_id):
 
 if __name__ == '__main__':
     root = Tk()
-    root.title('ImageDBH')
+    root.title('WizStatistics')
     root.config(bg='white')
     
     cfg = Config()
     pgb=Progressbar(root,orient='horizontal',length=500,mode='determinate')
     pgb.pack()
     
-    db_path = cfg.cache_dir + '/weekery.db'
-    init = False
-    if not os.path.exists(db_path):
-        init = True
-    
-    global days, weeks, months, years
-    conn = sqlite3.connect(db_path)
-    days = DB(conn, 'DAYS')
-    weeks = DB(conn, 'WEEKS')
-    months = DB(conn, 'MONTHS')
-    years = DB(conn, 'YEARS')
-    
-    if init:
-        days._initialize()
-        weeks._initialize()
-        months._initialize()
-        years._initialize()
+    # db_path = cfg.cache_dir + '/weekery.db'
+    # init = False
+    # if not os.path.exists(db_path):
+    #     init = True
+    #
+    # conn = sqlite3.connect(db_path)
+    # days = DB(conn, 'DAYS')
+    # weeks = DB(conn, 'WEEKS')
+    # months = DB(conn, 'MONTHS')
+    # years = DB(conn, 'YEARS')
+    #
+    # if init:
+    #     days._initialize()
+    #     weeks._initialize()
+    #     months._initialize()
+    #     years._initialize()
 
     id_filenames, id_dates = wiz_week_index(cfg)
-    read_data(cfg, pgb, id_dates, id_filenames)
+    read_data(root, cfg, pgb, id_dates, id_filenames, 'all')
     
-    days.commit()
+    # conn.commit()
     
-    we_r = weeks._select('ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency', (20180100, 20180200))
-    for it in we_r:
-        print(it)
+    #we_r = weeks._select('ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency', (20180100, 20180200))
+    #for it in we_r:
+    #    print(it)
     
-    conn.close()
+    #conn.close()
     root.mainloop()

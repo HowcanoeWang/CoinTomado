@@ -72,13 +72,18 @@ class DB(object):
         self.__tablename__ = self.models[modelname]['tablename']
         self.__column__ = self.models[modelname]['column']
         self.__attr__ = self.models[modelname]['attr']
+        sql = 'SELECT * FROM ' + self.__tablename__
+        try:
+            self.c.execute(sql)
+        except sqlite3.OperationalError:
+            self._initialize()
 
     def _initialize(self):
         sql = 'CREATE TABLE ' + self.__tablename__ + self.__attr__
         try:
             self.c.execute(sql)
             logging.info('table ' + self.__tablename__ + ' has been created')
-            self.commit()
+            self.conn.commit()
         except:
             logging.exception(sql)
 
@@ -132,10 +137,6 @@ class DB(object):
 
     def drop_table(self):
         pass
-
-    def commit(self):
-        self.conn.commit()
-        
 
 if __name__ == '__main__':
     cfg = Config()
