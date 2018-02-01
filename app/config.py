@@ -60,8 +60,6 @@ class Config(object):
         else:
             self._read_config()
 
-
-    
     def _initialize_config(self):
         """
         Just read >>> [Default] part codes for main frame
@@ -248,7 +246,8 @@ class Config(object):
         
         with open(self.config_path, 'w+') as f:
             config.write(f)
-        
+
+
 if __name__ == '__main__':
     # load_config('weekery_folder')
     root = Tk()

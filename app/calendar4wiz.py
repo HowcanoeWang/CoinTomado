@@ -1,4 +1,4 @@
-#--------------------
+# -*- coding:utf-8 -*-
 # codes multiplexing from
 # https://stackoverflow.com/questions/16475852/python-tkinter-with-ttk-calendar
 import calendar
@@ -101,6 +101,8 @@ class Calendar(ttk.Frame):
 
     def __config_calendar(self):
         cols = self._cal.formatweekheader(3).split()
+        if cols == ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']:
+            cols = ['一','二','三','四','五','六','日']
         self._calendar['columns'] = cols
         self._calendar.tag_configure('header', background='grey90')
         self._calendar.insert('', 'end', values=cols, tag='header')

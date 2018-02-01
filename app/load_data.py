@@ -14,9 +14,7 @@ from tkinter.ttk import Progressbar
 
 def wiz_week_index(cfg):
     """ get index of wiz files, include filename format check
-    :param wiz_path_folder: read from config.txt directly
-        [type] str
-        [e.g.] '/Time Log/My Weekry'
+    :param cfg: Config() from outer space
     :return:
         id_filenames: a list to store the week file path
             [type] list.str
@@ -39,7 +37,7 @@ def wiz_week_index(cfg):
         try:
             int(year_folder)
         except ValueError:  # year_folder is not a number string, int(year_folder) raise error
-            showwarning("警告",'"年份文件夹:[' + year_folder + ']应当为年份数字如2018，已忽略，如需导入请修改格式"')
+            showwarning("警告", '"年份文件夹:[' + year_folder + ']应当为年份数字如2018，已忽略，如需导入请修改格式"')
             continue
         
         year_folder_contents = os.listdir(wiz_path_folder_comb)
@@ -60,7 +58,9 @@ def wiz_week_index(cfg):
 
 
 def read_one_file(cfg, days, year_file_name):
-    """read the given weekery wiz file, store table DAYS into [datebase.db]
+    """read the given weekery wiz file, store table DAYS into [database.db]
+    :param cfg: Config() from outer space
+    :param days: days = DB('DAYS')
     :param year_file_name: file name to read
         [type] str
         [e.g.] '2017/17[11.27-12.03]W48.ziw'
@@ -96,22 +96,21 @@ def read_one_file(cfg, days, year_file_name):
         showwarning("警告", '周记文件:[' + file_name + ']中,表格中的天数与标题时间段的天数不符, 请修改文件名后重新加载')
         return
     
-    # generage date range list.int
-    date_generated = [int((op + datetime.timedelta(days=x)).strftime('%Y%m%d')) \
-                      for x in range(0, (ed-op).days + 1)]
+    # generate date range list.int
+    date_generated = [int((op + datetime.timedelta(days=x)).strftime('%Y%m%d')) for x in range(0, (ed-op).days + 1)]
     
     # ========== data dealing =============
     def group(L):  # [1,2,3, 5,6] -> [(1,3), (5,6)]
         first = last = L[0]
-        for n in L[1:]:
-            if n - 0.5 == last: # Part of the group, bump the end
-                last = n
-            else: # Not part of the group, yield current group and start a new
+        for l in L[1:]:
+            if n - 0.5 == last:   # Part of the group, bump the end
+                last = l
+            else:   # Not part of the group, yield current group and start a new
                 yield first, last
-                first = last = n
-        yield first, last # Yield the last group
-        
-    ## set removed time_range
+                first = last = l
+        yield first, last   # Yield the last group
+
+    # set removed time_range
     for n, date in enumerate(date_generated):
         # skip columns all NaN
         if kind_data.count().iloc[n] == 0:
@@ -124,7 +123,7 @@ def read_one_file(cfg, days, year_file_name):
         # --------- count kind_time -----------
         one_day_kind = kind_data.iloc[:, n]
         kind_num = one_day_kind.value_counts() * 0.5
-        for i, kind in enumerate(['fun','rest','work','compel','useless','sleep']):
+        for i, kind in enumerate(['fun', 'rest', 'work', 'compel', 'useless', 'sleep']):
             if kind in kind_num.index:
                 record[i+1] = kind_num[kind]   # skip ID which is [0] in record
         
@@ -146,52 +145,58 @@ def read_one_file(cfg, days, year_file_name):
         days.add(tuple(record), 'ID, fun, rest, work, compel, useless, sleep, frequency')
         
         # ------------- count sleep range --------------
-        l = list(map(int, one_day_kind[one_day_kind == 'sleep'].index))
-        nan = list(map(int,one_day_string[one_day_string.isnull()].index))
-        sleep_val = [(val - 1) / 2 for val in l if val in nan]
+        sl_kd = list(map(int, one_day_kind[one_day_kind == 'sleep'].index))
+        kd_nan = list(map(int, one_day_string[one_day_string.isnull()].index))
+        sleep_val = [(val - 1) / 2 for val in sl_kd if val is not kd_nan]
         sleep_morning = [val for val in sleep_val if val <= 12]
         sleep_afternoon = [val for val in sleep_val if val > 12]
         
         # judge whether sleep among noon
         over_noon = False
-        for period in group(sleep_val):
-            if period[0] < 12 and 12 < period[-1]:
-                #print('睡到午休')
-                over_noon = True
-                sleep_ed_today = period[-1]
-                # sleep over noon, the end of this period should belongs to today not tomorrow
-                if sleep_ed_today == 23.5:
-                    # Except sleep from (11:00, 24:00) to tomorrow
+        if len(sleep_val) > 0:
+            for period in group(sleep_val):
+                if period == (0, 0):
                     pass
-                else:
-                    # ![Note]! the time is the index of a half hour
-                    #          so the sleep_ed +0.5 is the real end of sleep end
-                    days.add((date_generated[n], sleep_ed_today + 0.5),'ID, sleep_ed')
-                
+                if (period[0] < 12) and (12 < period[-1]):
+                    # print('睡到午休')
+                    over_noon = True
+                    sleep_ed_today = period[-1]
+                    # sleep over noon, the end of this period should belongs to today not tomorrow
+                    if sleep_ed_today == 23.5:
+                        # Except sleep from (11:00, 24:00) to tomorrow
+                        pass
+                    else:
+                        # ![Note]! the time is the index of a half hour
+                        #          so the sleep_ed +0.5 is the real end of sleep end
+                        days.add((date_generated[n], sleep_ed_today + 0.5), 'ID, sleep_ed')
+        else:
+            # probably no sleep result in that day, l = []
+            pass
+
         # vectorization sleep time
         if sleep_morning:
             sleep_m = list(group(sleep_morning))
         else:
-            #print('通宵')
+            # print('通宵')
             sleep_m = []
         if sleep_afternoon:
             sleep_a = list(group(sleep_afternoon))
         else:
-            #print('熬夜')
+            # print('熬夜')
             sleep_a = []
         
         # ++++++++++ deal with the time before 12:00 p.m. +++++++++++++
-        if sleep_m: # not stay up whole night
+        if sleep_m:   # not stay up whole night
             if sleep_m[0][0] != 0:  # 0:00 still awake, but sleep before noon
                 # overwrite today's sleep_st record
                 days.add((date_generated[n], sleep_m[0][0]), 'ID, sleep_st')
             else:  # 0:00 fall asleep, not sure condition of yesterday
                 # if yesterday did not record today's sleep_st, the sleep time is 0:00
-                sleep_st_select = days._select('ID, sleep_st', (date, date))
-                if sleep_st_select[-1][-1] == None and not over_noon:
+                sleep_st_select = days.select('ID, sleep_st', (date, date))
+                if (sleep_st_select[-1][-1] is None) and (not over_noon):
                     # today's do not have sleep_st record
                     days.add((date_generated[n], sleep_m[0][0]), 'ID, sleep_st')
-            # not sleep overnoon, record todays sleep_ed
+            # not sleep overnoon, record today's sleep_ed
             if not over_noon:   
                 # ![Note]! the time is the index of a half hour
                 #          so the sleep_ed +0.5 is the real end of sleep end
@@ -204,12 +209,12 @@ def read_one_file(cfg, days, year_file_name):
         # ++++++++++ deal with the time after 12:00 p.m. +++++++++++++
         # change next days' record
         if sleep_a and sleep_a[-1][-1] == 23.5:  # sleep to next day
-            # >>> write [datebase.db]
+            # >>> write [database.db]
             next_day = datetime.datetime.strptime(str(date), '%Y%m%d') + datetime.timedelta(days=1)
             days.add((int(next_day.strftime('%Y%m%d')), sleep_a[-1][0] - 24), 'ID, sleep_st')
         else:
-            pass # including overnoon e.g.[(12.00, 13:00)], still not sleep at night 
-            #[12.00,24:00]
+            pass   # including overnoon e.g.[(12.00, 13:00)], still not sleep at night
+            # [12.00,24:00]
     
     cfg.update_config()
     # deliver [Notes] for TABLE Weeks' note column
@@ -218,7 +223,6 @@ def read_one_file(cfg, days, year_file_name):
 
     
 def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=True):
-    cfg._read_config()
     last_date = cfg.last_read
     today = int(datetime.datetime.today().strftime('%Y%m%d'))
 
@@ -235,7 +239,7 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
     
     if order == "default":
         for id_date, id_filename in zip(id_dates, id_filenames):
-            if (last_date <= id_date[-1] ) and (today >= id_date[0]):
+            if (last_date <= id_date[-1]) and (today >= id_date[0]):
                 read_list.append(id_filename)
                 date_list.append(id_date)
         if not read_list:
@@ -272,13 +276,13 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         week_mid = datetime.datetime.strptime(str(st_weekery), '%Y%m%d') + datetime.timedelta(days=3)
         week_id = int(week_mid.strftime('%Y%m%d'))   # id for TABLE WEEKS index
         
-        # standarize week start day (Mon) and end day(Mon)
+        # standardize week start day (Mon) and end day(Mon)
         week_st = week_mid - datetime.timedelta(days=week_mid.weekday())
         week_ed = week_st + datetime.timedelta(days=6)
         week_st_id = int(week_st.strftime('%Y%m%d'))
         week_ed_id = int(week_ed.strftime('%Y%m%d'))
         
-        queries = days._select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (week_st_id, week_ed_id))
+        queries = days.select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (week_st_id, week_ed_id))
         if queries:
             record = _meanimize(queries, week_id)
             record.append(note)
@@ -288,7 +292,6 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         
     # ============= Months summary ================
     month_st = datetime.datetime.strptime(str(date_list[0][0]), '%Y%m%d')
-    #month_st = datetime.datetime.strptime('20170203', '%Y%m%d')
     month_ed = datetime.datetime.today()
     month_set = set()
     for i in range((month_ed - month_st).days):
@@ -299,7 +302,7 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         month_st_id = int(month_str + '00')
         month_ed_id = int(month_str + '32')
         
-        queries = days._select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (month_st_id, month_ed_id))
+        queries = days.select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (month_st_id, month_ed_id))
         if queries:
             record = _meanimize(queries, month_id)
             months.add(tuple(record))
@@ -308,7 +311,6 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         
     # ============= Years summary ==================
     year_st = int(str(date_list[0][0])[:4])
-    year_st = 2016
     year_ed = int(datetime.datetime.today().strftime('%Y%m%d')[:4])
     
     if year_st != year_ed:
@@ -317,11 +319,11 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         year_rk = [year_st]
     
     for year_int in year_rk:
-        year_id = year_int * 10000
+        year_id = year_int * 10000 + 601
         year_st_id = int(str(year_int)+'0000')
         year_ed_id = int(str(year_int)+'1232')
         
-        queries = months._select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (year_st_id, year_ed_id))
+        queries = months.select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (year_st_id, year_ed_id))
         if queries:
             record = _meanimize(queries, year_id)
             years.add(tuple(record))
@@ -335,26 +337,28 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
     if dialog:
         showinfo('初始化：第5步(共5步)', '周记文件读取完成！')
 
+
 def _meanimize(query_results, target_id):
     """
     [input] query_results: must in this format
-    >> models._select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed')
+    >> models.select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed')
     """
-    funs = [q[1] for q in query_results if q[1] != None]
-    rests = [q[2] for q in query_results if q[2] != None]
-    works = [q[3] for q in query_results if q[3] != None]
-    compels = [q[4] for q in query_results if q[4] != None]
-    uselesses = [q[5] for q in query_results if q[5] != None]
-    sleeps = [q[6] for q in query_results if q[6] != None]
+    funs = [q[1] for q in query_results if q[1] is not None]
+    rests = [q[2] for q in query_results if q[2] is not None]
+    works = [q[3] for q in query_results if q[3] is not None]
+    compels = [q[4] for q in query_results if q[4] is not None]
+    uselesses = [q[5] for q in query_results if q[5] is not None]
+    sleeps = [q[6] for q in query_results if q[6] is not None]
     frequencies = [Counter(eval(q[7])) for q in query_results if q[7]]
-    sleep_sts = [q[8] for q in query_results if q[8] != None]
-    sleep_eds = [q[9] for q in query_results if q[9] != None]
+    sleep_sts = [q[8] for q in query_results if q[8] is not None]
+    sleep_eds = [q[9] for q in query_results if q[9] is not None]
     
     frequency = Counter({})
     for f in frequencies:
         frequency += f
     frequen = dict(frequency.most_common(15))
-    frequen['Total'] = sum(frequency.values())
+    total = sum(frequency.values())
+    frequen['Others'] = total - sum(frequen.values())
     
     fun = round(sum(funs) / len(funs), 1)
     rest = round(sum(rests) / len(rests), 1)
@@ -371,39 +375,15 @@ def _meanimize(query_results, target_id):
         
 
 if __name__ == '__main__':
-    root = Tk()
-    root.title('WizStatistics')
-    root.config(bg='white')
+    Root = Tk()
+    Root.title('WizStatistics')
+    Root.config(bg='white')
     
-    cfg = Config()
-    pgb=Progressbar(root,orient='horizontal',length=500,mode='determinate')
-    pgb.pack()
-    
-    # db_path = cfg.cache_dir + '/weekery.db'
-    # init = False
-    # if not os.path.exists(db_path):
-    #     init = True
-    #
-    # conn = sqlite3.connect(db_path)
-    # days = DB(conn, 'DAYS')
-    # weeks = DB(conn, 'WEEKS')
-    # months = DB(conn, 'MONTHS')
-    # years = DB(conn, 'YEARS')
-    #
-    # if init:
-    #     days._initialize()
-    #     weeks._initialize()
-    #     months._initialize()
-    #     years._initialize()
+    Cfg = Config()
+    Pgb = Progressbar(Root, orient='horizontal', length=500, mode='determinate')
+    Pgb.pack()
 
-    id_filenames, id_dates = wiz_week_index(cfg)
-    read_data(root, cfg, pgb, id_dates, id_filenames, 'all')
-    
-    # conn.commit()
-    
-    #we_r = weeks._select('ID, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, frequency', (20180100, 20180200))
-    #for it in we_r:
-    #    print(it)
-    
-    #conn.close()
-    root.mainloop()
+    ID_FileNames, ID_Dates = wiz_week_index(Cfg)
+    read_data(Root, Cfg, Pgb, ID_Dates, ID_FileNames, 'all')
+
+    Root.mainloop()

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import sqlite3
 import logging
 import datetime
@@ -7,64 +6,64 @@ from config import Config
 
 
 class DB(object):
-    models = {'DAYS': {}, 'WEEKS': {}, 'MONTHS':{}, 'YEARS':{}}
-    
+    models = {'DAYS': {}, 'WEEKS': {}, 'MONTHS': {}, 'YEARS': {}}
+
     models['DAYS'] = {'tablename': 'DAYS',
                       'column': 'ID, fun, rest, work, compel, useless, \
                                  sleep, sleep_st, sleep_ed, frequency',
                       'attr': '''(ID        INT   NOT NULL    PRIMARY KEY,
-                                 fun       REAL,
-                                 rest      REAL,
-                                 work      REAL,
-                                 compel    REAL,
-                                 useless   REAL,
-                                 sleep     REAL,
-                                 sleep_st  REAL,
-                                 sleep_ed  REAL,        
-                                 frequency CHAR(512))'''}
+                                  fun       REAL,
+                                  rest      REAL,
+                                  work      REAL,
+                                  compel    REAL,
+                                  useless   REAL,
+                                  sleep     REAL,
+                                  sleep_st  REAL,
+                                  sleep_ed  REAL,        
+                                  frequency CHAR(512))'''}
     
     models['WEEKS'] = {'tablename': 'WEEKS',
                        'column': 'ID, fun, rest, work, compel, useless, sleep, \
                                   sleep_st, sleep_ed, frequency, notes',
-                       'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
-                                 fun       REAL,
-                                 rest      REAL,
-                                 work      REAL,
-                                 compel    REAL,
-                                 useless   REAL,
-                                 sleep     REAL,
-                                 sleep_st  REAL,
-                                 sleep_ed  REAL,        
-                                 frequency CHAR(512),
-                                 notes     CHAR(512))'''}
+                       'attr': '''(ID        INT   NOT NULL    PRIMARY KEY,
+                                   fun       REAL,
+                                   rest      REAL,
+                                   work      REAL,
+                                   compel    REAL,
+                                   useless   REAL,
+                                   sleep     REAL,
+                                   sleep_st  REAL,
+                                   sleep_ed  REAL,        
+                                   frequency CHAR(512),
+                                   notes     CHAR(512))'''}
 
     models['MONTHS'] = {'tablename': 'MONTHS',
                         'column': 'ID, fun, rest, work, compel, useless, sleep, \
                                    sleep_st, sleep_ed, frequency',
-                        'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
-                                  fun       REAL,
-                                  rest      REAL,
-                                  work      REAL,
-                                  compel    REAL,
-                                  useless   REAL,
-                                  sleep     REAL,
-                                  sleep_st  REAL,
-                                  sleep_ed  REAL,        
-                                  frequency CHAR(512))'''} 
+                        'attr': '''(ID        INT   NOT NULL    PRIMARY KEY,
+                                    fun       REAL,
+                                    rest      REAL,
+                                    work      REAL,
+                                    compel    REAL,
+                                    useless   REAL,
+                                    sleep     REAL,
+                                    sleep_st  REAL,
+                                    sleep_ed  REAL,        
+                                    frequency CHAR(512))'''}
     
     models['YEARS'] = {'tablename': 'YEARS',
-                        'column': 'ID, fun, rest, work, compel, useless, sleep, \
-                                   sleep_st, sleep_ed, frequency',
-                        'attr':'''(ID        INT   NOT NULL    PRIMARY KEY,
-                                  fun       REAL,
-                                  rest      REAL,
-                                  work      REAL,
-                                  compel    REAL,
-                                  useless   REAL,
-                                  sleep     REAL,
-                                  sleep_st  REAL,
-                                  sleep_ed  REAL,        
-                                  frequency CHAR(512))'''} 
+                       'column': 'ID, fun, rest, work, compel, useless, sleep, \
+                                  sleep_st, sleep_ed, frequency',
+                       'attr': '''(ID        INT   NOT NULL    PRIMARY KEY,
+                                   fun       REAL,
+                                   rest      REAL,
+                                   work      REAL,
+                                   compel    REAL,
+                                   useless   REAL,
+                                   sleep     REAL,
+                                   sleep_st  REAL,
+                                   sleep_ed  REAL,        
+                                   frequency CHAR(512))'''}
 
     def __init__(self, conn, modelname):     
         self.conn = conn
@@ -84,14 +83,14 @@ class DB(object):
             self.c.execute(sql)
             logging.info('table ' + self.__tablename__ + ' has been created')
             self.conn.commit()
-        except:
+        except Exception:
             logging.exception(sql)
 
     def _insert(self, value_tuple, column='self.__column__'):
         sql = 'INSERT INTO ' + self.__tablename__ + '(' + column + ') VALUES' + str(value_tuple)
         try:
             self.c.execute(sql)
-        except:
+        except Exception:
             logging.exception(sql)
 
     def _update(self, value_tuple, column='self.__column__'):
@@ -109,17 +108,17 @@ class DB(object):
         sql = 'UPDATE ' + self.__tablename__ + ' SET ' + set_str + ' WHERE ID = ' + str(value_tuple[0])
         try:
             self.c.execute(sql)
-        except:
+        except Exception:
             logging.exception(sql)
 
-    def _select(self, column_str, id_tuple):
+    def select(self, column_str, id_tuple):
         # column_str = 'ID, NAME, AGE, ADDRESS, SALARY'
         sql = 'SELECT ' + column_str + ' FROM ' + self.__tablename__ + \
               ' WHERE ID BETWEEN ' + str(id_tuple[0]) + ' AND ' + str(id_tuple[-1])
         try:
             result = self.c.execute(sql).fetchall()
             return result
-        except:
+        except Exception:
             logging.exception(sql)
 
     def add(self, value_tuple, column='self.__column__'):
@@ -132,48 +131,40 @@ class DB(object):
                 self._insert(value_tuple, column)
             else:  # have record, use update
                 self._update(value_tuple, column)
-        except:
+        except Exception:
             logging.exception(sql)
 
     def drop_table(self):
         pass
 
-if __name__ == '__main__':
-    cfg = Config()
-    db_path = cfg.cache_dir + '/weekery.db'
-    init = False
-    if not os.path.exists(db_path):
-        init = True
 
-    conn = sqlite3.connect(db_path)
-    days = DB(conn, 'DAYS')
-    weeks = DB(conn, 'WEEKS')
-    months = DB(conn, 'MONTHS')
+if __name__ == '__main__':
+    Cfg = Config()
+    db_path = Cfg.cache_dir + '/weekery.db'
+
+    Conn = sqlite3.connect(db_path)
+    days = DB(Conn, 'DAYS')
+    weeks = DB(Conn, 'WEEKS')
+    months = DB(Conn, 'MONTHS')
 
     t = datetime.datetime.now()
 
-    if init:
-        days._initialize()
-        weeks._initialize()
-        months._initialize()
-
-
     days.add((20170120, 5, 6, 3, 2, 1, 5, -1.5, 6.0, "{'a':1, 'b':2, 'c':3}"))
     weeks.add((20170120, 5, 6, 3, 2, 1, 5, 2.5, 6.0, "{'a':1, 'b':2, 'c':3}", 'asdfasdfwefsdfsedfsdf'))
-    print(days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
+    print(days.select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
     
     # specified test
     days.add((20170121, "{'a':1, 'b':4, 'c':5}"), column='ID, frequency')
     days.add((20170123, -2.5), column='ID, sleep_st')
-    print(days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
+    print(days.select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
     # null test
-    days.add((20170110, 5,6,7,8,9,2), 'ID, fun, rest, work, compel, useless, sleep')
-    print(days._select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
+    days.add((20170110, 5, 6, 7, 8, 9, 2), 'ID, fun, rest, work, compel, useless, sleep')
+    print(days.select('ID, fun, rest, work, compel, useless, sleep, frequency', (20170100, 20180100)))
     
-    we_r = weeks._select('ID, fun, rest, work, compel, useless, sleep, frequency, notes', (20170100, 20180100))
+    we_r = weeks.select('ID, fun, rest, work, compel, useless, sleep, frequency, notes', (20170100, 20180100))
 
     print(we_r)
 
-    days.commit()
+    Conn.commit()
     print(datetime.datetime.now() - t)
-    conn.close()
+    Conn.close()
