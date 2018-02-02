@@ -115,8 +115,9 @@ def table2dataframe(html, color_kind=None, header='off'):
                     c += 1
                 # fresh skip_index
                 if style:
-                    if 'background-color: ' in style:
-                        color_str = style.split('background-color: ')[-1][:-1]
+                    if 'background-color:' in style:
+                        color_soup = style.split('background-color:')[-1][:-1]
+                        color_str = str(color_soup).lstrip()
                         if color_kind:
                             color = color_kind[color_str]
                         else:
@@ -145,3 +146,16 @@ def table2dataframe(html, color_kind=None, header='off'):
 
 def read_notes(html):
     return 'here is the notes that you read'
+
+if __name__ == '__main__':
+    file_path = r'C:\Users\HZWang\Documents\My Knowledge\Data\18251920822@126.com\Time Log\My Weekry\2017\17[11.20-11.26]W47.ziw'
+    color_kind = {"rgb(182, 202, 255)": "NaN",
+                  "rgb(172, 243, 254)": "fun",
+                  "rgb(178, 255, 161)": "rest",
+                  "rgb(254, 244, 156)": "work",
+                  "rgb(254, 207, 156)": "compel",
+                  "rgb(247, 182, 255)": "useless",
+                  "rgb(238, 238, 238)": "sleep"}
+    soup_list, _ = read_ziw(file_path)
+    df_list = table2dataframe(soup_list[0], color_kind)
+    print(df_list[0])

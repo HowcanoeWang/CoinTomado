@@ -95,13 +95,6 @@ class WeekeryApp(Tk):
         self.btn_settings.config(bg='white')
 
         # ====== Others ======
-        # self.canvas_up = Canvas(self.frame_left)
-        # self.canvas_up.config(width=800, height=300, bg='white', bd=1)
-        # self.canvas_up.config(highlightthickness=0)
-        # self.canvas_down = Canvas(self.frame_left)
-        # self.canvas_down.config(width=800, height=300, bg='white', bd=1)
-        # self.canvas_down.config(highlightthickness=0)
-        
         self.canvas_up = FigureCanvasTkAgg(self.fig_up, master=self.frame_left)
         self.canvas_down = FigureCanvasTkAgg(self.fig_down, master=self.frame_left)
 
@@ -173,6 +166,9 @@ class WeekeryApp(Tk):
             self.controls.w = int(select_calendar.selected_days.strftime("%W"))
             self.controls.d = int(select_calendar.selected_days.strftime("%d"))
             print(self.controls.y, self.controls.m, self.controls.d)
+            self.controls._date_range()
+            self.controls._query_data()
+            self._paint()
 
         return select_calendar.selected_days
 
