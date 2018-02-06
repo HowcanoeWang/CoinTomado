@@ -65,12 +65,12 @@ class DB(object):
                                    sleep_ed  REAL,        
                                    frequency CHAR(512))'''}
 
-    def __init__(self, conn, modelname):     
+    def __init__(self, conn, model_name):
         self.conn = conn
         self.c = self.conn.cursor()
-        self.__tablename__ = self.models[modelname]['tablename']
-        self.__column__ = self.models[modelname]['column']
-        self.__attr__ = self.models[modelname]['attr']
+        self.__tablename__ = self.models[model_name]['tablename']
+        self.__column__ = self.models[model_name]['column']
+        self.__attr__ = self.models[model_name]['attr']
         sql = 'SELECT * FROM ' + self.__tablename__
         try:
             self.c.execute(sql)
@@ -135,11 +135,15 @@ class DB(object):
             logging.exception(sql)
 
     def drop_table(self):
-        pass
+        sql = 'DELETE FROM ' + self.__tablename__ + ';'
+        try:
+            self.c.execute(sql)
+        except Exception:
+            logging.exception(sql)
 
 
 if __name__ == '__main__':
-    Cfg = Config()
+    Cfg = Config('root')
     db_path = Cfg.cache_dir + '/weekery.db'
 
     Conn = sqlite3.connect(db_path)
@@ -164,6 +168,8 @@ if __name__ == '__main__':
     we_r = weeks.select('ID, fun, rest, work, compel, useless, sleep, frequency, notes', (20170100, 20180100))
 
     print(we_r)
+
+    weeks.drop_table()
 
     Conn.commit()
     print(datetime.datetime.now() - t)

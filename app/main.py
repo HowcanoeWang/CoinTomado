@@ -4,8 +4,11 @@ import calendar
 import sqlite3
 import logging
 import matplotlib
+import math
+import numpy as np
 import matplotlib.pyplot as plt
-from adjustText import adjust_text
+import matplotlib.patches as mpatches
+from matplotlib.collections import PatchCollection
 from tkinter import Tk, Toplevel, Frame, Button, Text, END
 from tkinter.ttk import Progressbar, Style
 from tkinter.messagebox import showinfo, askyesno
@@ -13,6 +16,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from calendar4wiz import Calendar
 from config import Config
 from controls import Controls
+from sqlite import DB
 from load_data import wiz_week_index, read_data
 
 
@@ -141,9 +145,9 @@ class WeekeryApp(Tk):
         # ++++++++++++++++++
         # +  Import class  +
         # ++++++++++++++++++
-        self.cfg = Config()
-        db_path = self.cfg.cache_dir + '/weekery.db'
-        self.conn = sqlite3.connect(db_path)
+        self.cfg = Config(self)
+        self.db_path = self.cfg.cache_dir + '/weekery.db'
+        self.conn = sqlite3.connect(self.db_path)
 
         self.id_filenames, self.id_dates = wiz_week_index(self.cfg)
 
@@ -165,7 +169,6 @@ class WeekeryApp(Tk):
             self.controls.m = int(select_calendar.selected_days.month)
             self.controls.w = int(select_calendar.selected_days.strftime("%W"))
             self.controls.d = int(select_calendar.selected_days.strftime("%d"))
-            print(self.controls.y, self.controls.m, self.controls.d)
             self.controls._date_range()
             self.controls._query_data()
             self._paint()
@@ -211,6 +214,7 @@ class WeekeryApp(Tk):
             self.canvas_show = 'frequency'
         else:
             pass
+        self._paint()
     
     def _paint(self):
         kinds = self.controls.kinds
@@ -254,29 +258,58 @@ class WeekeryApp(Tk):
                 week_label = key
                 labels = frequency[key][0][:10]
                 count = frequency[key][1][:10]
-                b.pie(count, labels=labels, autopct='%1.1f%%', shadow=False, startangle=90, labeldistance=1.05)
+                b.pie(count, labels=labels, autopct='%1.1f%%', shadow=False, startangle=0, labeldistance=1.05)
                 b.axis('equal')
                 b.set_xlabel('(Top 10)')
                 b.set_title(week_label)
-                texts = []
-                for text in b.texts:
-                    fuck = eval(str(text)[4:])
-                    if fuck[2][-1] == '%' and float(fuck[2][:-1]) < 5:
-                        texts.append(text)
-                #adjust_text(texts)
             self.fig_down.canvas.draw()
         elif self.canvas_show == 'sleep':
-            pass   # sleep show
+            self.fig_down.clear()
+            axes2 = self.fig_down.add_subplot(111)
+
+            l = len(sleep_condition.index)
+            up = sleep_condition.dropna().values.max()
+            down = sleep_condition.dropna().values.min()
+            mean_st = sleep_condition.mean()['sleep_st']
+            mean_ed = sleep_condition.mean()['sleep_ed']
+
+            axes2.axhline(y=mean_st, linewidth=1, color='r')
+            axes2.axhline(y=mean_ed, linewidth=1, color='g')
+
+            axes2.text(0, mean_st - 0.5, '入睡：' + self._decimal_to_str(mean_st), color='r')
+            axes2.text(0, mean_ed + 0.3, '起床：' + self._decimal_to_str(mean_ed), color='g')
+
+            axes2.set_xlim([0, l + 1])
+            axes2.set_ylim([down - 1, up + 1])
+            axes2.set_xticks(list(range(1, l + 1)))
+            axes2.set_xticklabels(list(sleep_condition.index))
+            axes2.set_yticks(list(range(math.floor(down), math.ceil(up + 1))))
+            ticks = axes2.get_yticks()
+            axes2.set_yticklabels([str(i) + ':00' if i >= 0 else str(24 + i) + ':00' for i in ticks])
+
+            patches = []
+            for i, id in enumerate(sleep_condition.index):
+                st = sleep_condition.loc[id]['sleep_st']
+                ed = sleep_condition.loc[id]['sleep_ed']
+                div = ed - st
+                if div == np.nan:
+                    continue
+                fancy_box = mpatches.FancyBboxPatch([i + 1, st], 0.1, div, color='yellow')
+                patches.append(fancy_box)
+
+            collection = PatchCollection(patches, facecolors='gray', alpha=0.6)
+            axes2.add_collection(collection)
+
+            self.fig_down.canvas.draw()
 
         # refresh note board
-
 
     def reload(self):
         ans = askyesno('警告', '重新读取所有数据？')
         if ans:
             read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 'all', dialog=False)
             showinfo('提示', '重新读取数据完成！')
-            self._paint()
+            self.weeks()
     
     @staticmethod
     def settings():
@@ -289,6 +322,18 @@ class WeekeryApp(Tk):
             sys.exit()
         else:
             return
+
+    @staticmethod
+    def _decimal_to_str(t):
+        minute, hour = math.modf(t)
+        if t < 0:
+            hour = int(24 + hour)
+        else:
+            hour = int(hour)
+
+        minute = round(minute * 60)
+        t_str = str(hour) + ':' + str(minute)
+        return t_str
 
 
 class CalendarPopup(Toplevel):
@@ -324,4 +369,4 @@ if __name__ == '__main__':
             app = WeekeryApp()
             app.mainloop()
         except Exception:
-            logging.error()
+            logging.error('opps')

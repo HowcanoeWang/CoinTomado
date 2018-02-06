@@ -132,6 +132,10 @@ def read_one_file(cfg, days, year_file_name):
         string_num = one_day_string.value_counts().to_dict()
         # split '+' by items
         for key in list(string_num.keys()):
+            if ':' in key:
+                key = key.split(':')[0]
+            elif '：' in key:
+                key = key.split('：')[0]
             s = key.split('+')
             if len(s) > 1:
                 for ss in s:
@@ -247,6 +251,10 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
             return
         
     if order == "all":
+        days.drop_table()
+        weeks.drop_table()
+        months.drop_table()
+        years.drop_table()
         for id_date, id_filename in zip(id_dates, id_filenames):
             if today >= id_date[0]:
                 read_list.append(id_filename)
@@ -379,11 +387,10 @@ if __name__ == '__main__':
     Root.title('WizStatistics')
     Root.config(bg='white')
     
-    Cfg = Config()
+    Cfg = Config(Root)
     Pgb = Progressbar(Root, orient='horizontal', length=500, mode='determinate')
     Pgb.pack()
 
     ID_FileNames, ID_Dates = wiz_week_index(Cfg)
-    read_data(Root, Cfg, Pgb, ID_Dates, ID_FileNames, 'all')
-
+    read_data(Root, Cfg, Pgb, ID_Dates, ID_FileNames, 'all', dialog=True)
     Root.mainloop()

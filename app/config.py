@@ -30,7 +30,8 @@ class Config(object):
                   "rgb(247, 182, 255)": "useless",
                   "rgb(238, 238, 238)": "sleep"}
 
-    def __init__(self):
+    def __init__(self, root):
+        self.root = root
         # create cache folder
         mkdir1 = False
         mkdir2 = False
@@ -80,7 +81,7 @@ class Config(object):
                     ans = askyesno('警告', '您没有选择文件夹,重新选择？')
                     if not ans:
                         logging.info('Gave up folder selection')
-                        root.destroy()
+                        self.root.destroy()
                         return
                 else:
                     if os.path.exists(wiz_dir+'/Wiz.log') and os.path.exists(wiz_dir+'/Data'):
@@ -89,13 +90,13 @@ class Config(object):
                     elif not os.path.exists(wiz_dir+'/Data'):
                         showwarning('警告', '[Data]文件夹不存在')
                         logging.warning('['+wiz_dir+'/Data]'+'is not a wiz data folder')
-                        root.destroy()
+                        self.root.destroy()
                         return
                     else:
                         ans = askyesno('警告', '此文件夹非为知笔记数据文件夹, 重新选择？')
                         if not ans:
                             logging.info('Gave up reselect wiz data folder')
-                            root.destroy()
+                            self.root.destroy()
                             return
         # ^[Exception 1] ends 
         
@@ -128,13 +129,13 @@ class Config(object):
                         showinfo('提示', '仅限以下选择\n' + str(list(diag_str.keys())))
                     else:
                         showwarning('警告', '用户取消选择，初始化停止')
-                        root.destroy()   
+                        self.root.destroy()
                         return
         # ^[Exception 3] ends
         # v[Exception 4] there are no email folder in "Data" folder
         else:
             showwarning('警告', '未找到存在的用户名，请登陆为知笔记同步后再次运行')
-            root.destroy()
+            self.root.destroy()
             return
         # ^[Exception 4] ends
         
@@ -169,7 +170,7 @@ class Config(object):
             else:  # cancel selection
                 ans = askyesno('警告', '您没有选择文件夹,重新选择？')
                 if not ans:
-                    root.destroy()
+                    self.root.destroy()
                     return
                 
         self._write_config()
@@ -211,7 +212,7 @@ class Config(object):
             if not ans:  # reedit
                 showinfo('提示', '周记配置文件config.ini路径：\n' + self.config_path)
                 logging.info('user selected to modify config mannually')
-                root.destroy()
+                self.root.destroy()
                 return
             else:
                 logging.info('user selected to initialize config automatically')

@@ -116,12 +116,13 @@ class Controls(object):
                 if item[8] is not None:
                     sleep_condition.loc[date_str] = item[7:9]
                 # frequency
-                freq_dict = eval(item[-1])
-                freq_counter = Counter(freq_dict)
-                frequency_summary += freq_counter
-                if len(freq_dict.keys()) >= 1 and record == True:
-                    frequency[date_str] = [list(freq_dict.keys()), list(freq_dict.values())]
-                    record=False
+                if item[-1] is not None:
+                    freq_dict = eval(item[-1])
+                    freq_counter = Counter(freq_dict)
+                    frequency_summary += freq_counter
+                    if len(freq_dict.keys()) >= 1 and record == True:
+                        frequency[date_str] = [list(freq_dict.keys()), list(freq_dict.values())]
+                        record=False
             else:
                 logging.info(date_str + 'not in ' + str(index_range))
 
@@ -258,7 +259,7 @@ class Controls(object):
         
 
 if __name__ == '__main__':
-    cfg = Config()
+    cfg = Config('root')
     db_path = cfg.cache_dir + '/weekery.db'
 
     Conn = sqlite3.connect(db_path)
