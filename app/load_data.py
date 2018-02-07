@@ -151,7 +151,7 @@ def read_one_file(cfg, days, year_file_name):
         # ------------- count sleep range --------------
         sl_kd = list(map(int, one_day_kind[one_day_kind == 'sleep'].index))
         kd_nan = list(map(int, one_day_string[one_day_string.isnull()].index))
-        sleep_val = [(val - 1) / 2 for val in sl_kd if val is not kd_nan]
+        sleep_val = [(val - 1) / 2 for val in sl_kd if val in kd_nan]
         sleep_morning = [val for val in sleep_val if val <= 12]
         sleep_afternoon = [val for val in sleep_val if val > 12]
         

@@ -1,41 +1,39 @@
 # -*- coding:utf-8 -*-
-import sys
-import calendar
-import sqlite3
-import logging
-import matplotlib
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.collections import PatchCollection
-from tkinter import Tk, Toplevel, Frame, Button, Text, END
-from tkinter.ttk import Progressbar, Style
-from tkinter.messagebox import showinfo, askyesno
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from calendar4wiz import Calendar
-from config import Config
-from controls import Controls
-from sqlite import DB
-from load_data import wiz_week_index, read_data
+from tkinter import Tk, Toplevel, Button, Frame
 
 
 class WeekeryApp(Tk):
     def __init__(self):
         super().__init__()
         self.canvas_show = 'frequency'  # or 'sleep'
-        self.protocol('WM_DELETE_WINDOW', self.close_window)
-        
+
+        self.withdraw()
+        splash = Splash(self)
+        splash.pgb['maximum'] = 5
+
+        import matplotlib
+        import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        from tkinter.ttk import Progressbar, Style
+
+        splash.pgb['value'] = 1
+        splash.label.image = splash.gif1
+        splash.update()
+
         plt.style.use('ggplot')
         matplotlib.use('TkAgg')
         matplotlib.rcParams['font.family'] = 'STSong'
+        self.Set3 = plt.cm.Set3(range(10))
+        self.Paired = plt.cm.Paired(range(10))
 
-        self.fig_up = plt.figure(figsize=(7, 3))
-        self.fig_down = plt.figure(figsize=(7, 3))
+        splash.pgb['value'] = 2
+        splash.label.image = splash.gif1
+        splash.update()
 
         # +++++++++++++++
         # +  GUI_setup  +
         # +++++++++++++++
+        from tkinter import Frame, Button, Text, END
         self.title('Weekery')
         Style().theme_use('vista')
         '''
@@ -49,8 +47,8 @@ class WeekeryApp(Tk):
         |  |     |- <.left
         |  |     |- >.right
         |  |     |- calendar.middle
-        |  |- Canvas_up.top
-        |  |- Canvas_down.top
+        |  |- fig_up.top
+        |  |- fig_down.top
         |- Frame_Right
            |- Frame_btn_right
            |  |- btn_setting.right
@@ -99,6 +97,8 @@ class WeekeryApp(Tk):
         self.btn_settings.config(bg='white')
 
         # ====== Others ======
+        self.fig_up = plt.figure(figsize=(7, 3))
+        self.fig_down = plt.figure(figsize=(7, 3))
         self.canvas_up = FigureCanvasTkAgg(self.fig_up, master=self.frame_left)
         self.canvas_down = FigureCanvasTkAgg(self.fig_down, master=self.frame_left)
 
@@ -108,7 +108,13 @@ class WeekeryApp(Tk):
         self.notes.config(bg='azure')
         self.notes.insert(END, '本周评价：A+ \n 【写作情况】\n 年终总结 \n ...')
 
-        # ====== Packing ======
+        splash.pgb['value'] = 3
+        splash.label.image = splash.gif1
+        splash.update()
+
+        # ++++++++++++++++++
+        # +  GUI Packing   +
+        # ++++++++++++++++++
         # level-1
         self.pgb.pack(side='bottom', fill='both')
 
@@ -142,9 +148,26 @@ class WeekeryApp(Tk):
         # # level-2
         self.notes.pack(side='top', fill='both', expand='YES')
 
+        splash.pgb['value'] = 4
+        splash.label.image = splash.gif1
+        splash.update()
+
         # ++++++++++++++++++
         # +  Import class  +
         # ++++++++++++++++++
+        import sqlite3
+        from config import Config
+        from controls import Controls
+        from load_data import wiz_week_index, read_data
+        splash.pgb['value'] = 5
+        splash.label.image = splash.gif1
+        splash.update()
+        splash.destroy()
+        # ============= Show Main GUI ==============
+        self.protocol('WM_DELETE_WINDOW', self.close_window)
+        self.wm_state('zoomed')  # maximize windows
+        self.deiconify()
+
         self.cfg = Config(self)
         self.db_path = self.cfg.cache_dir + '/weekery.db'
         self.conn = sqlite3.connect(self.db_path)
@@ -159,6 +182,8 @@ class WeekeryApp(Tk):
         self.controls = Controls(self.conn)
         self.conn.commit()
 
+        self.colors = {v: (int(f[4:7])/255, int(f[9:12])/255, int(f[14:17])/255, 1) for f, v in self.cfg.color_kind.items()}
+
         self._paint()
 
     def ask_selected_date(self):
@@ -169,8 +194,8 @@ class WeekeryApp(Tk):
             self.controls.m = int(select_calendar.selected_days.month)
             self.controls.w = int(select_calendar.selected_days.strftime("%W"))
             self.controls.d = int(select_calendar.selected_days.strftime("%d"))
-            self.controls._date_range()
-            self.controls._query_data()
+            self.controls.date_range()
+            self.controls.query_data()
             self._paint()
 
         return select_calendar.selected_days
@@ -225,7 +250,12 @@ class WeekeryApp(Tk):
         # paint canvas_up
         axs = self.fig_up.add_subplot(111)
         axs.clear()
-        ax1 = kinds.plot(kind='bar', ax=axs, legend=False)
+        ax1 = kinds.plot(kind='bar', ax=axs, legend=False, color=[self.colors['fun'],
+                                                                  self.colors['rest'],
+                                                                  self.colors['work'],
+                                                                  self.colors['compel'],
+                                                                  self.colors['useless'],
+                                                                  self.colors['sleep']])
         ax1.set_ylabel('Hours')
         # ax1.set_xlabel('Month')
         ax1.xaxis.grid()
@@ -239,26 +269,24 @@ class WeekeryApp(Tk):
         if self.canvas_show == 'frequency':
             self.fig_down.clear()
             num = len(frequency)
-            if num > 0 and num <= 4:
+            if num <= 4:
                 row = 1
                 col = num
-            elif num == 5 or num == 6:
-                row = 2
-                col = 3
-            elif num == 7 or num == 8:
-                row = 2
-                col = 4
             else:
-                row = 1
-                col = 1
-                logging.error('number of x axis out of range (8)')
+                logging.error('number of x' + str(num) + ' axis out of range (8)')
+                return
             # plot
             for i, key in enumerate(frequency):
                 b = self.fig_down.add_subplot(row, col, i+1)
                 week_label = key
                 labels = frequency[key][0][:10]
                 count = frequency[key][1][:10]
-                b.pie(count, labels=labels, autopct='%1.1f%%', shadow=False, startangle=0, labeldistance=1.05)
+                b.set_title(week_label)
+
+                if week_label == 'Summary':
+                    b.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Set3)
+                else:
+                    b.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Paired)
                 b.axis('equal')
                 b.set_xlabel('(Top 10)')
                 b.set_title(week_label)
@@ -267,7 +295,7 @@ class WeekeryApp(Tk):
             self.fig_down.clear()
             axes2 = self.fig_down.add_subplot(111)
 
-            l = len(sleep_condition.index)
+            sl = len(sleep_condition.index)
             up = sleep_condition.dropna().values.max()
             down = sleep_condition.dropna().values.min()
             mean_st = sleep_condition.mean()['sleep_st']
@@ -276,29 +304,31 @@ class WeekeryApp(Tk):
             axes2.axhline(y=mean_st, linewidth=1, color='r')
             axes2.axhline(y=mean_ed, linewidth=1, color='g')
 
-            axes2.text(0, mean_st - 0.5, '入睡：' + self._decimal_to_str(mean_st), color='r')
-            axes2.text(0, mean_ed + 0.3, '起床：' + self._decimal_to_str(mean_ed), color='g')
+            axes2.text(0, mean_st - 0.3, '入睡：' + self._decimal_to_str(mean_st), color='r')
+            axes2.text(0, mean_ed + 0.5, '起床：' + self._decimal_to_str(mean_ed), color='g')
 
-            axes2.set_xlim([0, l + 1])
-            axes2.set_ylim([down - 1, up + 1])
-            axes2.set_xticks(list(range(1, l + 1)))
+            axes2.set_xlim(0, sl + 1)
+            axes2.set_ylim(down - 1, up + 1)
+            axes2.set_xticks(list(range(1, sl + 1)))
             axes2.set_xticklabels(list(sleep_condition.index))
-            axes2.set_yticks(list(range(math.floor(down), math.ceil(up + 1))))
+            axes2.set_yticks(list(range(int(math.floor(down)), int(math.ceil(up + 1)))))
             ticks = axes2.get_yticks()
             axes2.set_yticklabels([str(i) + ':00' if i >= 0 else str(24 + i) + ':00' for i in ticks])
 
             patches = []
-            for i, id in enumerate(sleep_condition.index):
-                st = sleep_condition.loc[id]['sleep_st']
-                ed = sleep_condition.loc[id]['sleep_ed']
+            for i, sid in enumerate(sleep_condition.index):
+                st = sleep_condition.loc[sid]['sleep_st']
+                ed = sleep_condition.loc[sid]['sleep_ed']
                 div = ed - st
                 if div == np.nan:
                     continue
                 fancy_box = mpatches.FancyBboxPatch([i + 1, st], 0.1, div, color='yellow')
+                axes2.text(i + 0.95, st + div / 2, str(round(div, 1)) + 'h')
                 patches.append(fancy_box)
 
             collection = PatchCollection(patches, facecolors='gray', alpha=0.6)
             axes2.add_collection(collection)
+            axes2.invert_yaxis()
 
             self.fig_down.canvas.draw()
 
@@ -335,6 +365,46 @@ class WeekeryApp(Tk):
         t_str = str(hour) + ':' + str(minute)
         return t_str
 
+    @staticmethod
+    def make_autopct(values):
+        def my_autopct(pct):
+            total = sum(values)
+            val = int(round(pct * total / 100.0))
+            # return '{p:1.1f}%({v:1.1f}h)'.format(p=pct, v=val/2)
+            return '{v:1.1f}h'.format(p=pct, v=val / 2)
+        return my_autopct
+
+
+class Splash(Toplevel):
+    def __init__(self, parent):
+        from tkinter import  Label, PhotoImage
+        from tkinter.ttk import Progressbar
+
+        Toplevel.__init__(self, parent)
+        self.title("Splash")
+        self.overrideredirect(True)
+
+        screenwidth = self.winfo_screenwidth()
+        screenheight = self.winfo_screenheight()
+        width = round(screenwidth / 30) * 10
+        height = round(screenheight / 30) * 10
+
+        from timg import img
+        self.gif1 = PhotoImage(data=img)
+        self.gif1 = self.gif1.subsample(3,3)
+        self.label = Label(self, image=self.gif1)
+        self.label.config(width=width, height=height-20, bg='white', bd=1)
+
+        self.pgb = Progressbar(self, orient='horizontal', length=width, mode='determinate')
+
+        self.geometry('%dx%d+%d+%d' % (width, height, (screenwidth - width)/2, (screenheight - height)/2))
+
+        self.label.pack(side='top', fill='both')
+        self.pgb.pack(side='bottom', fill='both')
+
+        # required to make window show before the program gets to the mainloop
+        self.update()
+
 
 class CalendarPopup(Toplevel):
     def __init__(self):
@@ -360,13 +430,25 @@ class CalendarPopup(Toplevel):
 
 
 if __name__ == '__main__':
-    mode = 'debug'
-    if mode == 'debug':
+    try:
         app = WeekeryApp()
+        import math
+        import numpy as np
+        import matplotlib.patches as mpatches
+        import matplotlib.pyplot as plt
+        import calendar
+        import sys
+        from calendar4wiz import Calendar
+        from matplotlib.collections import PatchCollection
+        from load_data import read_data
+        from tkinter.messagebox import showinfo, askyesno
         app.mainloop()
-    else:
-        try:
-            app = WeekeryApp()
-            app.mainloop()
-        except Exception:
-            logging.error('opps')
+    except Exception as e:
+        import sys
+        import logging
+        import traceback
+        from tkinter.messagebox import showinfo
+        logging.exception('opps', exc_info=e)
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        showinfo('报错', ''.join(line for line in lines))

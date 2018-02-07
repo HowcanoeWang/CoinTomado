@@ -28,7 +28,8 @@ class Config(object):
                   "rgb(254, 244, 156)": "work",
                   "rgb(254, 207, 156)": "compel",
                   "rgb(247, 182, 255)": "useless",
-                  "rgb(238, 238, 238)": "sleep"}
+                  "rgb(238, 238, 238)": "sleep",
+                  "rgb(255, 199, 200)": "NaN"}
 
     def __init__(self, root):
         self.root = root

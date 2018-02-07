@@ -23,9 +23,9 @@ class Controls(object):
 
     def __init__(self, conn):
         self.mod = 'WEEKS'
-        self._date_range()
+        self.date_range()
         self.conn = conn
-        self._query_data()
+        self.query_data()
 
     @staticmethod
     def _add_months(source_date, months):
@@ -36,7 +36,7 @@ class Controls(object):
 
         return datetime.date(year, month, day)
     
-    def _date_range(self):
+    def date_range(self):
         if self.mod == 'DAYS':
             self.ed = datetime.date(self.y, self.m, self.d)
             self.st = self.ed - datetime.timedelta(days=self.n-1)
@@ -57,7 +57,7 @@ class Controls(object):
         else:
             pass
     
-    def _query_data(self):
+    def query_data(self):
         table = DB(self.conn, self.mod)
         st = int(self.st.strftime('%Y%m%d'))
         ed = int(self.ed.strftime('%Y%m%d'))
@@ -148,23 +148,23 @@ class Controls(object):
 
     def days(self):
         self.mod = 'DAYS'
-        self._date_range()
-        self._query_data()
+        self.date_range()
+        self.query_data()
 
     def weeks(self):
         self.mod = 'WEEKS'
-        self._date_range()
-        self._query_data()
+        self.date_range()
+        self.query_data()
 
     def months(self):
         self.mod = 'MONTHS'
-        self._date_range()
-        self._query_data()
+        self.date_range()
+        self.query_data()
 
     def years(self):
         self.mod = 'YEARS'
-        self._date_range()
-        self._query_data()
+        self.date_range()
+        self.query_data()
 
     def previous(self):
         if self.mod == 'DAYS':
@@ -174,7 +174,7 @@ class Controls(object):
             self.m = int(previous.month)
             self.d = int(previous.strftime('%d'))
             self.w = int(previous.strftime('%W'))
-            self._date_range()
+            self.date_range()
         elif self.mod == 'WEEKS':
             now = datetime.date(self.y, self.m, self.d)
             previous = now - datetime.timedelta(weeks=1)
@@ -182,7 +182,7 @@ class Controls(object):
             self.m = int(previous.month)
             self.d = int(previous.strftime('%d'))
             self.w = int(previous.strftime('%W'))
-            self._date_range()
+            self.date_range()
         elif self.mod == 'MONTHS':
             now = datetime.date(self.y, self.m, self.d)
             previous = self._add_months(now, -1)
@@ -190,7 +190,7 @@ class Controls(object):
             self.m = int(previous.month)
             self.d = int(previous.strftime('%d'))
             self.w = int(previous.strftime('%W'))
-            self._date_range()
+            self.date_range()
         elif self.mod == 'YEARS':
             now = datetime.date(self.y, self.m, self.d)
             previous = now - datetime.timedelta(days=365)
@@ -198,10 +198,10 @@ class Controls(object):
             self.m = int(previous.month)
             self.d = int(previous.strftime('%d'))
             self.w = int(previous.strftime('%W'))
-            self._date_range()
+            self.date_range()
         else:
             pass
-        self._query_data()
+        self.query_data()
 
     def backward(self):
         if self.mod == 'DAYS':
@@ -211,7 +211,7 @@ class Controls(object):
             self.m = int(afterwards.month)
             self.d = int(afterwards.strftime('%d'))
             self.w = int(afterwards.strftime('%W'))
-            self._date_range()
+            self.date_range()
         elif self.mod == 'WEEKS':
             now = datetime.date(self.y, self.m, self.d)
             afterwards = now + datetime.timedelta(weeks=1)
@@ -219,7 +219,7 @@ class Controls(object):
             self.m = int(afterwards.month)
             self.d = int(afterwards.strftime('%d'))
             self.w = int(afterwards.strftime('%W'))
-            self._date_range()
+            self.date_range()
         elif self.mod == 'MONTHS':
             now = datetime.date(self.y, self.m, self.d)
             afterwards = self._add_months(now, 1)
@@ -227,7 +227,7 @@ class Controls(object):
             self.m = int(afterwards.month)
             self.d = int(afterwards.strftime('%d'))
             self.w = int(afterwards.strftime('%W'))
-            self._date_range()
+            self.date_range()
         elif self.mod == 'YEARS':
             now = datetime.date(self.y, self.m, self.d)
             afterwards = now + datetime.timedelta(days=365)
@@ -235,16 +235,16 @@ class Controls(object):
             self.m = int(afterwards.month)
             self.d = int(afterwards.strftime('%d'))
             self.w = int(afterwards.strftime('%W'))
-            self._date_range()
+            self.date_range()
         else:
             pass
-        self._query_data()
+        self.query_data()
 
     def plus(self):
         if self.n < 8:
             self.n += 1
-            self._date_range()
-            self._query_data()
+            self.date_range()
+            self.query_data()
         else:
             print('Maximum number has been met!')
 
@@ -252,8 +252,8 @@ class Controls(object):
     def minus(self):
         if self.n - 1 > 0:
             self.n -= 1
-            self._date_range()
-            self._query_data()
+            self.date_range()
+            self.query_data()
         else:
             print("Minimum number has been met!")
         
