@@ -374,8 +374,8 @@ def _meanimize(query_results, target_id):
     compel = round(sum(compels) / len(compels), 1)
     useless = round(sum(uselesses) / len(uselesses), 1)
     sleep = round(sum(sleeps) / len(sleeps), 1)
-    sleep_st = round(sum(sleep_sts) / len(sleep_sts), 1)
-    sleep_ed = round(sum(sleep_eds) / len(sleep_eds), 1)
+    sleep_st = round(sum(sleep_sts) / len(sleep_sts), 1) if len(sleep_sts) > 0 else 0
+    sleep_ed = round(sum(sleep_eds) / len(sleep_eds), 1) if len(sleep_eds) > 0 else 0
     
     record = [target_id, fun, rest, work, compel, useless, sleep, sleep_st, sleep_ed, str(frequen)]
     
