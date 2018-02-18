@@ -41,29 +41,15 @@ def read_ziw(input_string):
     return soup_list, file_list
 
 
-def table2dataframe(html, color_kind=None, header='off'):
-    # if header == 'on':
-    #     set first row as table header
-    # if header == 'off':
-    #     set number sequence as table header
-    #
-    # color_kind = {'rgb(0,0,0)':'black',
-    #               'rgb(1,1,1)':'white', ...}
-    #
-    # df_list = [(df, kd), (df, kd),...]
-    df_list = []
-    tables = html.find_all('tbody')
+def generator(tables):
     for table in tables:
         row = len(table)
         # count col number
-        col_list = []
-        for tr in table.children:
-            len_tr = len(tr)
-            # delete '\t' take over an empty column
-            # for td in tr.children:
-            #    if type(td) == bs4.element.NavigableString:
-            #        len_tr -= 1
-            col_list.append(len_tr)
+        col_list = [len(tr) for tr in table.children]
+        # delete '\t' take over an empty column
+        # for td in tr.children:
+        #    if type(td) == bs4.element.NavigableString:
+        #        len_tr -= 1
         col = max(col_list)
         columns = np.arange(0, col)
         index = np.arange(0, row)
@@ -79,7 +65,7 @@ def table2dataframe(html, color_kind=None, header='off'):
                 else:
                     attrs = td.attrs
 
-                if td.string == None:
+                if td.string:
                     string = ''
                     for item in td.contents:
                         if isinstance(item, bs4.element.NavigableString):
@@ -140,8 +126,21 @@ def table2dataframe(html, color_kind=None, header='off'):
                 kd.ix[r][c] = color
                 # change skip_index to True if cell already has value
                 skip_index[r, c] = True
+        yield [df, kd]
 
-        df_list.append([df, kd])
+
+def table2dataframe(html, color_kind=None, header='off'):
+    # if header == 'on':
+    #     set first row as table header
+    # if header == 'off':
+    #     set number sequence as table header
+    #
+    # color_kind = {'rgb(0,0,0)':'black',
+    #               'rgb(1,1,1)':'white', ...}
+    #
+    # df_list = [(df, kd), (df, kd),...]
+    tables = html.find_all('tbody')
+    df_list = list(generator(tables))
 
     return df_list
 
@@ -181,7 +180,7 @@ def read_notes(html):
     return notes
 
 if __name__ == '__main__':
-    file_path = r'C:\Users\Zero\Documents\My Knowledge\Data\zeroto521@gmil.com\My Weekery\2018\Exp.ziw'
+    file_path = r'C:\Users\Zero\Documents\My Knowledge\Data\zeroto521@gmil.com\My Weekery\2018\18[02.12-02.18]W07.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",
@@ -191,4 +190,5 @@ if __name__ == '__main__':
                   "rgb(238, 238, 238)": "sleep"}
     soup_list, _ = read_ziw(file_path)
     read_notes(soup_list[0])
-    # df_list = table2dataframe(soup_list[0], color_kind)
+    df_list = table2dataframe(soup_list[0], color_kind)
+    print(df_list)
