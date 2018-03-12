@@ -16,7 +16,7 @@ class Config(object):
     """
     language = 'zh_cn'
     wiz_dir = os.path.normpath(os.path.expanduser(r'~/Documents/My Knowledge'))
-    cache_dir = 'C:/ProgramData/WizStatistics'
+    cache_dir = os.path.join(os.path.abspath('.'), 'cache')
     config_path = os.path.join(cache_dir, 'config.ini')
     user_email = 'your_wiz_account_email@web.com'
     weekery_dir = r'/My Weekery'
@@ -34,17 +34,18 @@ class Config(object):
     def __init__(self, root):
         self.root = root
         # create cache folder
-        mkdir1 = False
-        mkdir2 = False
+        mkdir = False
+        '''
         if not os.path.exists('C:/ProgramData'):
             os.mkdir('C:/ProgramData')
             mkdir1 = True
             os.mkdir(self.cache_dir)
             mkdir2 = True
         else:
-            if not os.path.exists(self.cache_dir):
-                os.mkdir(self.cache_dir)
-                mkdir2 = True
+        '''
+        if not os.path.exists(self.cache_dir):
+            os.mkdir(self.cache_dir)
+            mkdir = True
 
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
@@ -54,9 +55,8 @@ class Config(object):
                             filemode='a')
         logging.info('\n\n' + '=' * 5 +
                      datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '=' * 5)
-        if mkdir1:
-            logging.info('C:/ProgramData not exist, created successfully')
-        if mkdir2:
+
+        if mkdir:
             logging.info(self.cache_dir + ' not exist, created successfully')
 
         if not os.path.exists(self.config_path):

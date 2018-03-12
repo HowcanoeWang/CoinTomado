@@ -14,16 +14,19 @@ class Controls(object):
     m = int(datetime.datetime.now().month)
     w = int(datetime.datetime.now().strftime("%W"))
     d = int(datetime.datetime.now().strftime("%d"))
-    n = 5
-    mod = 'WEEKS'
+    n = 7
+    mod = 'DAYS'
     kinds = None
     sleep_condition = None
     frequency = None
     notes = None
 
     def __init__(self, conn):
-        self.mod = 'WEEKS'
-        self.date_range()
+        self.mod = 'DAYS'
+        # self.date_range()
+        now = datetime.date(self.y, self.m, self.d)
+        self.st = now - datetime.timedelta(days=now.weekday())
+        self.ed = self.st + datetime.timedelta(days=6)
         self.conn = conn
         self.query_data()
 

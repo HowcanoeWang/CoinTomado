@@ -126,7 +126,8 @@ class DB(object):
         if column == 'self.__column__':
             column = self.__column__
         try:
-            cursor = self.conn.execute(sql).fetchall()
+            # cursor = self.conn.execute(sql).fetchall()
+            cursor = self.c.execute(sql).fetchall()
             if len(cursor) == 0:  # no result, use insert
                 self._insert(value_tuple, column)
             else:  # have record, use update

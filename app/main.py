@@ -22,7 +22,8 @@ class WeekeryApp(Tk):
 
         plt.style.use('ggplot')
         matplotlib.use('TkAgg')
-        matplotlib.rcParams['font.family'] = 'STSong'
+
+        matplotlib.rcParams['font.family'] = 'SimHei'
         self.Set3 = plt.cm.Set3(range(10))
         self.Paired = plt.cm.Paired(range(10))
 
@@ -33,7 +34,7 @@ class WeekeryApp(Tk):
         # +++++++++++++++
         # +  GUI_setup  +
         # +++++++++++++++
-        from tkinter import Frame, Button, Text, END
+        from tkinter import Frame, Button, Text
         self.title('Weekery')
         Style().theme_use('vista')
         '''
@@ -70,7 +71,7 @@ class WeekeryApp(Tk):
 
         # ====== Buttons ======
         self.btn_days = Button(self.frame_btn_left, text='日', command=self.days)
-        self.btn_days.config(bg='white')
+        self.btn_days.config(bg='white', state='disable')
         self.btn_weeks = Button(self.frame_btn_left, text='周', command=self.weeks)
         self.btn_weeks.config(bg='white')
         self.btn_months = Button(self.frame_btn_left, text='月', command=self.months)
@@ -106,7 +107,6 @@ class WeekeryApp(Tk):
 
         self.notes = Text(self.frame_right, width=50)
         self.notes.config(bg='azure')
-        self.notes.insert(END, '本周评价：A+ \n 【写作情况】\n 年终总结 \n ...')
 
         splash.pgb['value'] = 3
         splash.label.image = splash.gif1
@@ -201,18 +201,38 @@ class WeekeryApp(Tk):
         return select_calendar.selected_days
 
     def days(self):
+        self.btn_days.config(state="disable")
+        self.btn_weeks.config(state="normal")
+        self.btn_months.config(state="normal")
+        self.btn_years.config(state="normal")
+
         self.controls.days()
         self._paint()
 
     def weeks(self):
+        self.btn_days.config(state="normal")
+        self.btn_weeks.config(state="disable")
+        self.btn_months.config(state="normal")
+        self.btn_years.config(state="normal")
+
         self.controls.weeks()
         self._paint()
 
     def months(self):
+        self.btn_days.config(state="normal")
+        self.btn_weeks.config(state="normal")
+        self.btn_months.config(state="disable")
+        self.btn_years.config(state="normal")
+
         self.controls.months()
         self._paint()
 
     def years(self):
+        self.btn_days.config(state="normal")
+        self.btn_weeks.config(state="normal")
+        self.btn_months.config(state="normal")
+        self.btn_years.config(state="disable")
+
         self.controls.years()
         self._paint()
 
@@ -291,29 +311,36 @@ class WeekeryApp(Tk):
                 b.set_xlabel('(Top 10)')
                 b.set_title(week_label)
             self.fig_down.canvas.draw()
+
         elif self.canvas_show == 'sleep':
             self.fig_down.clear()
             axes2 = self.fig_down.add_subplot(111)
 
-            sl = len(sleep_condition.index)
-            up = sleep_condition.dropna().values.max()
-            down = sleep_condition.dropna().values.min()
-            mean_st = sleep_condition.mean()['sleep_st']
-            mean_ed = sleep_condition.mean()['sleep_ed']
+            if not (sleep_condition.isnull().all()['sleep_st'] or sleep_condition.isnull().all()['sleep_ed']):
+                sl = len(sleep_condition.index)
+                up = sleep_condition.dropna().values.max()
+                down = sleep_condition.dropna().values.min()
+                mean_st = sleep_condition.mean()['sleep_st']
+                mean_ed = sleep_condition.mean()['sleep_ed']
 
-            axes2.axhline(y=mean_st, linewidth=1, color='r')
-            axes2.axhline(y=mean_ed, linewidth=1, color='g')
+                axes2.axhline(y=mean_st, linewidth=1, color='r')
+                axes2.axhline(y=mean_ed, linewidth=1, color='g')
 
-            axes2.text(0, mean_st - 0.3, '入睡：' + self._decimal_to_str(mean_st), color='r')
-            axes2.text(0, mean_ed + 0.5, '起床：' + self._decimal_to_str(mean_ed), color='g')
+                axes2.text(0, mean_st - 0.3, '入睡：' + self._decimal_to_str(mean_st), color='r')
+                axes2.text(0, mean_ed + 0.5, '起床：' + self._decimal_to_str(mean_ed), color='g')
 
-            axes2.set_xlim(0, sl + 1)
-            axes2.set_ylim(down - 1, up + 1)
+                axes2.set_xlim(0, sl + 1)
+                axes2.set_ylim(down - 1, up + 1)
+
+                axes2.set_yticks(list(range(int(math.floor(down)), int(math.ceil(up + 1)))))
+                ticks = axes2.get_yticks()
+                axes2.set_yticklabels([str(i) + ':00' if i >= 0 else str(24 + i) + ':00' for i in ticks])
+            else:
+                sl = len(sleep_condition.index)
+
             axes2.set_xticks(list(range(1, sl + 1)))
             axes2.set_xticklabels(list(sleep_condition.index))
-            axes2.set_yticks(list(range(int(math.floor(down)), int(math.ceil(up + 1)))))
-            ticks = axes2.get_yticks()
-            axes2.set_yticklabels([str(i) + ':00' if i >= 0 else str(24 + i) + ':00' for i in ticks])
+
 
             patches = []
             for i, sid in enumerate(sleep_condition.index):
@@ -333,6 +360,30 @@ class WeekeryApp(Tk):
             self.fig_down.canvas.draw()
 
         # refresh note board
+        title = notes[0]
+
+        if title is not None:
+            contents = eval(notes[1])
+
+            self.notes.delete(1.0, 'end')
+            self.notes.insert('insert', title + '\n', 'Title')
+
+            for key, value in contents.items():
+                if '【' in key:
+                    self.notes.insert('insert', key + '\n', 'Heading')
+                    try:
+                        self.notes.insert('insert', eval("u'" + value + "'") + '\n', 'Text')
+                    except SyntaxError:
+                        self.notes.insert('insert', value + '\n', 'Text')
+                else:
+                    self.notes.insert('insert', key + ':', 'Subtitle')
+                    self.notes.insert('insert', value + '\n', 'Subtitle')
+
+            self.notes.tag_config('Title', foreground='blue', justify="center", font=25)
+            self.notes.tag_config('Subtitle', foreground='gray', justify="center", font=25)
+            self.notes.tag_config('Heading', foreground='black', justify="left", font=17)
+            self.notes.tag_config('Text', foreground='gray', justify="left", font=15)
+
 
     def reload(self):
         ans = askyesno('警告', '重新读取所有数据？')
@@ -357,11 +408,12 @@ class WeekeryApp(Tk):
     def _decimal_to_str(t):
         minute, hour = math.modf(t)
         if t < 0:
-            hour = int(24 + hour)
+            hour = int(23 + hour)
+            minute = round(60 + minute * 60)
         else:
             hour = int(hour)
+            minute = round(minute * 60)
 
-        minute = round(minute * 60)
         t_str = str(hour) + ':' + str(minute)
         return t_str
 
@@ -389,8 +441,7 @@ class Splash(Toplevel):
         width = round(screenwidth / 30) * 10
         height = round(screenheight / 30) * 10
 
-        from timg import img
-        self.gif1 = PhotoImage(data=img)
+        self.gif1 = PhotoImage(file='timg.gif')
         self.gif1 = self.gif1.subsample(3,3)
         self.label = Label(self, image=self.gif1)
         self.label.config(width=width, height=height-20, bg='white', bd=1)

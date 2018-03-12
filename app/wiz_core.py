@@ -41,7 +41,7 @@ def read_ziw(input_string):
     return soup_list, file_list
 
 
-def generator(tables):
+def generator(tables, color_kind=None):
     for table in tables:
         row = len(table)
         # count col number
@@ -140,7 +140,7 @@ def table2dataframe(html, color_kind=None, header='off'):
     #
     # df_list = [(df, kd), (df, kd),...]
     tables = html.find_all('tbody')
-    df_list = list(generator(tables))
+    df_list = list(generator(tables, color_kind=color_kind))
 
     return df_list
 
@@ -171,7 +171,7 @@ def read_notes(html):
                 value = string[len(key):]
             else:
                 key = tmp
-                value = string
+                value = string + '\n'
             # save to dictionary
             if key not in notes:
                 notes[key] = value
@@ -180,7 +180,7 @@ def read_notes(html):
     return notes
 
 if __name__ == '__main__':
-    file_path = r'C:\Users\Zero\Documents\My Knowledge\Data\zeroto521@gmil.com\My Weekery\2018\18[02.12-02.18]W07.ziw'
+    file_path = r'C:\Users\HZWang\Documents\My Knowledge\Data\18251920822@126.com\Time Log\My Weekry\2018\18[02.05-02.11]W06.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",
@@ -189,6 +189,7 @@ if __name__ == '__main__':
                   "rgb(247, 182, 255)": "useless",
                   "rgb(238, 238, 238)": "sleep"}
     soup_list, _ = read_ziw(file_path)
-    read_notes(soup_list[0])
-    df_list = table2dataframe(soup_list[0], color_kind)
-    print(df_list)
+    notes = read_notes(soup_list[0])
+    #df_list = table2dataframe(soup_list[0], color_kind)
+    #print(df_list)
+    print(notes)

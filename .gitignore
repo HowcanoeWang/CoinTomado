@@ -1,6 +1,7 @@
 __future__
 __pycache__
 __exes__
+cache
 *.txt
 
 *.pkl

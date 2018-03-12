@@ -293,7 +293,7 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         queries = days.select('ID, fun, rest, work, compel, useless, sleep, frequency, sleep_st, sleep_ed', (week_st_id, week_ed_id))
         if queries:
             record = _meanimize(queries, week_id)
-            record.append(note)
+            record.append(str(note))
             weeks.add(tuple(record))
         else:
             continue
@@ -304,6 +304,7 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
     month_set = set()
     for i in range((month_ed - month_st).days):
         month_set.add((month_st + datetime.timedelta(i)).strftime("%Y%m"))
+
     month_rk = sorted(month_set)
     for month_str in month_rk:
         month_id = int(month_str + '15')
