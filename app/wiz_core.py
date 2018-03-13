@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import bs4
 from bs4 import BeautifulSoup
+import pprint
 
 
 def read_ziw(input_string):
@@ -164,7 +165,7 @@ def read_notes(html):
         string = tag.string
         if isinstance(string, str):
             string = string.strip()
-            key = re.search(r'(\[.+?\])|(【.*?】)', string)
+            key = re.search(r'(\[.+?\])|(【.+?】)', string)
             if key:
                 key = key.group()
                 tmp = key  # temp to save key
@@ -177,10 +178,19 @@ def read_notes(html):
                 notes[key] = value
             else:
                 notes[key] += value
+
+    # Some 'error' in wiz
+    # Parent of tag "h1" and content of tag "【其他总结】" are the same tag.
+    # So can I say what, ¯\\_(ツ)_/¯ .
+    # And it's not good way to deal with it.
+    tmp = map(lambda x: x.string, h1.parent.next_siblings)
+    tmp = filter(lambda x: isinstance(x, str), tmp)
+    notes[key] += '\n'.join(tmp)  # key is LOCAL variable.
+
     return notes
 
 if __name__ == '__main__':
-    file_path = r'C:\Users\HZWang\Documents\My Knowledge\Data\18251920822@126.com\Time Log\My Weekry\2018\18[02.05-02.11]W06.ziw'
+    file_path = r'D:\18[02.05-02.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",
@@ -190,6 +200,6 @@ if __name__ == '__main__':
                   "rgb(238, 238, 238)": "sleep"}
     soup_list, _ = read_ziw(file_path)
     notes = read_notes(soup_list[0])
-    #df_list = table2dataframe(soup_list[0], color_kind)
-    #print(df_list)
-    print(notes)
+    # df_list = table2dataframe(soup_list[0], color_kind)
+    # print(df_list)
+    pprint.pprint(notes)
