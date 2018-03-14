@@ -12,6 +12,8 @@ class WeekeryApp(Tk):
         splash.pgb['maximum'] = 5
 
         import matplotlib
+        matplotlib.use('TkAgg')
+        
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
         from tkinter.ttk import Progressbar, Style
@@ -21,7 +23,7 @@ class WeekeryApp(Tk):
         splash.update()
 
         plt.style.use('ggplot')
-        matplotlib.use('TkAgg')
+        
 
         matplotlib.rcParams['font.family'] = 'SimHei'
         self.Set3 = plt.cm.Set3(range(10))
@@ -164,11 +166,16 @@ class WeekeryApp(Tk):
         splash.update()
         splash.destroy()
         # ============= Show Main GUI ==============
-        self.protocol('WM_DELETE_WINDOW', self.close_window)
+        # self.protocol('WM_DELETE_WINDOW', self.close_window)
         self.wm_state('zoomed')  # maximize windows
         self.deiconify()
 
         self.cfg = Config(self)
+        
+        # user choose to cancle in configuration
+        if self.cfg.cancel:
+            return
+            
         self.db_path = self.cfg.cache_dir + '/weekery.db'
         self.conn = sqlite3.connect(self.db_path)
 

@@ -14,6 +14,8 @@ class Config(object):
     path = .../*.txt
     dir = .../somefolder
     """
+    cancel = False
+    username = os.getlogin()
     language = 'zh_cn'
     wiz_dir = os.path.normpath(os.path.expanduser(r'~/Documents/My Knowledge'))
     cache_dir = os.path.join(os.path.abspath('.'), 'cache')
@@ -84,6 +86,7 @@ class Config(object):
                     ans = askyesno('警告', '您没有选择文件夹,重新选择？')
                     if not ans:
                         logging.info('Gave up folder selection')
+                        self.cancel = True
                         self.root.destroy()
                         loop = False
                 else:
@@ -94,12 +97,14 @@ class Config(object):
                         showwarning('警告', '[Data]文件夹不存在')
                         logging.warning(
                             '[' + wiz_dir + '/Data]' + 'is not a wiz data folder')
+                        self.cancel = True
                         self.root.destroy()
                         loop = False
                     else:
                         ans = askyesno('警告', '此文件夹非为知笔记数据文件夹, 重新选择？')
                         if not ans:
                             logging.info('Gave up reselect wiz data folder')
+                            self.cancel = True
                             self.root.destroy()
                             loop = False
             else:
@@ -135,6 +140,7 @@ class Config(object):
                         showinfo('提示', '仅限以下选择\n' + str(list(diag_str.keys())))
                     else:
                         showwarning('警告', '用户取消选择，初始化停止')
+                        self.cancel = True
                         self.root.destroy()
                         loop = False
             else:
@@ -143,6 +149,7 @@ class Config(object):
         # v[Exception 4] there are no email folder in "Data" folder
         else:
             showwarning('警告', '未找到存在的用户名，请登陆为知笔记同步后再次运行')
+            self.cancel = True
             self.root.destroy()
             return
         # ^[Exception 4] ends
@@ -178,6 +185,7 @@ class Config(object):
             else:  # cancel selection
                 ans = askyesno('警告', '您没有选择文件夹,重新选择？')
                 if not ans:
+                    self.cancel = True
                     self.root.destroy()
                     return
 
@@ -186,24 +194,28 @@ class Config(object):
     def _read_config(self):
         config = ConfigParser()
         config.read(self.config_path)
+        
+        if not config.has_section(self.username):
+            self._initialize_config()
+            return
 
         # basic configs
-        self.wiz_dir = config.get('main', 'wiz_dir')
-        self.user_email = config.get('main', 'user_email')
-        self.weekery_dir = config.get('main', 'weekery_dir')
-        self.language = config.get('main', 'language')
+        self.wiz_dir = config.get(self.username, 'wiz_dir')
+        self.user_email = config.get(self.username, 'user_email')
+        self.weekery_dir = config.get(self.username, 'weekery_dir')
+        self.language = config.get(self.username, 'language')
 
         # extended configs
         extend = False
         try:
-            self.last_read = config.getint('main', 'last_read')
+            self.last_read = config.getint(self.username, 'last_read')
         except NoOptionError:
-            config.set('main', 'last_read', str(self.last_read))
+            config.set(self.username, 'last_read', str(self.last_read))
             extend = True
         try:
-            self.color_kind = eval(config.get('main', 'color_kind'))
+            self.color_kind = eval(config.get(self.username, 'color_kind'))
         except NoOptionError:
-            config.set('main', 'color_kind', str(self.color_kind))
+            config.set(self.username, 'color_kind', str(self.color_kind))
             extend = True
         # refresh config
         if extend:
@@ -216,28 +228,27 @@ class Config(object):
         else:
             logging.info('[' + work_dir + '] not exist when _read_config')
             # find whether computer change lead to username change only
-            ans = askyesno(
-                '警告', '周记路径[' + work_dir + ']不存在，重新初始化(Y)或手动编辑配置文件(N)？')
+            ans = askyesno('警告', '周记路径[' + work_dir + ']不存在，重新初始化(Y)或手动编辑配置文件(N)？')
             if not ans:  # reedit
                 showinfo('提示', '周记配置文件config.ini路径：\n' + self.config_path)
                 logging.info('user selected to modify config mannually')
+                self.cancel = True
                 self.root.destroy()
                 return
             else:
-                logging.info(
-                    'user selected to initialize config automatically')
+                logging.info('user selected to initialize config automatically')
                 self._initialize_config()
 
     def _write_config(self):
         config = ConfigParser()
         config.read(self.config_path)
-        config.add_section('main')
-        config.set('main', 'wiz_dir', self.wiz_dir)
-        config.set('main', 'user_email', self.user_email)
-        config.set('main', 'weekery_dir', self.weekery_dir)
-        config.set('main', 'language', self.language)
-        config.set('main', 'last_read', str(self.last_read))
-        config.set('main', 'color_kind', str(self.color_kind))
+        config.add_section(self.username)
+        config.set(self.username, 'wiz_dir', self.wiz_dir)
+        config.set(self.username, 'user_email', self.user_email)
+        config.set(self.username, 'weekery_dir', self.weekery_dir)
+        config.set(self.username, 'language', self.language)
+        config.set(self.username, 'last_read', str(self.last_read))
+        config.set(self.username, 'color_kind', str(self.color_kind))
 
         with open(self.config_path, 'w') as f:
             config.write(f)
@@ -248,12 +259,12 @@ class Config(object):
     def update_config(self):
         config = ConfigParser()
         config.read(self.config_path)
-        config.set('main', 'wiz_dir', self.wiz_dir)
-        config.set('main', 'user_email', self.user_email)
-        config.set('main', 'weekery_dir', self.weekery_dir)
-        config.set('main', 'language', self.language)
-        config.set('main', 'last_read', str(self.last_read))
-        config.set('main', 'color_kind', str(self.color_kind))
+        config.set(self.username, 'wiz_dir', self.wiz_dir)
+        config.set(self.username, 'user_email', self.user_email)
+        config.set(self.username, 'weekery_dir', self.weekery_dir)
+        config.set(self.username, 'language', self.language)
+        config.set(self.username, 'last_read', str(self.last_read))
+        config.set(self.username, 'color_kind', str(self.color_kind))
 
         with open(self.config_path, 'w+') as f:
             config.write(f)
