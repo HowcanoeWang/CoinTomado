@@ -12,7 +12,7 @@ class WeekeryApp(Tk):
         splash.pgb['maximum'] = 5
 
         import matplotlib
-        matplotlib.use('TkAgg')
+        #matplotlib.use('TkAgg')
         
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -491,9 +491,11 @@ if __name__ == '__main__':
     try:
         app = WeekeryApp()
         import math
-        import numpy as np
+        import numpy as np    
+        import matplotlib
+        matplotlib.use('TkAgg')
         import matplotlib.patches as mpatches
-        import matplotlib.pyplot as plt
+        # import matplotlib.pyplot as plt
         import calendar
         import sys
         from calendar4wiz import Calendar

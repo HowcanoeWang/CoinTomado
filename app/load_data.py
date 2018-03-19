@@ -132,10 +132,6 @@ def read_one_file(cfg, days, year_file_name):
         string_num = one_day_string.value_counts().to_dict()
         # split '+' by items
         for key in list(string_num.keys()):
-            if ':' in key:
-                key = key.split(':')[0]
-            elif '：' in key:
-                key = key.split('：')[0]
             s = key.split('+')
             if len(s) > 1:
                 for ss in s:
@@ -144,6 +140,26 @@ def read_one_file(cfg, days, year_file_name):
                     else:
                         string_num[ss] = string_num[key]
                 string_num.pop(key, None)
+        # remove ":" in the key
+        for key in list(string_num.keys()):
+            pop_judge = 0
+            if ':' in key:
+                s = key.split(':')[0]
+                pop_judge += 1
+            if '：' in key:
+                s = key.split('：')[0]
+                pop_judge += 1
+                
+            if pop_judge:
+                if pop_judge >= 2:
+                    showwarning("警告", "既有'：'又有':'，您这是闹哪样？这样会报错的，哼！")
+                if s in string_num.keys():
+                    string_num[s] += string_num[key]
+                else:
+                    string_num[s] = string_num[key]
+                string_num.pop(key)
+            else:
+                pass
         record[-1] = str(string_num)
         # >>> write into [database.db]
         days.add(tuple(record), 'ID, fun, rest, work, compel, useless, sleep, frequency')
