@@ -3,6 +3,7 @@ import os
 import datetime
 import sqlite3
 import logging
+import operator
 import wiz_core as wc
 from collections import Counter
 from config import Config
@@ -160,6 +161,11 @@ def read_one_file(cfg, days, year_file_name):
                 string_num.pop(key)
             else:
                 pass
+            
+        # sort the result
+        sorted_string = sorted(string_num.items(), key=operator.itemgetter(1), reverse=True)
+        string_num = dict(sorted_string)
+        
         record[-1] = str(string_num)
         # >>> write into [database.db]
         days.add(tuple(record), 'ID, fun, rest, work, compel, useless, sleep, frequency')

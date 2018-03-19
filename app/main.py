@@ -275,8 +275,8 @@ class WeekeryApp(Tk):
         notes = self.controls.notes
 
         # paint canvas_up
+        self.fig_up.clear()
         axs = self.fig_up.add_subplot(111)
-        axs.clear()
         ax1 = kinds.plot(kind='bar', ax=axs, legend=False, color=[self.colors['fun'],
                                                                   self.colors['rest'],
                                                                   self.colors['work'],
@@ -284,7 +284,6 @@ class WeekeryApp(Tk):
                                                                   self.colors['useless'],
                                                                   self.colors['sleep']])
         ax1.set_ylabel('Hours')
-        # ax1.set_xlabel('Month')
         ax1.xaxis.grid()
         ax1.set_xticklabels(kinds.index, rotation=0)
         # box = ax1.get_position()
@@ -295,6 +294,7 @@ class WeekeryApp(Tk):
         # paint canvas_down
         if self.canvas_show == 'frequency':
             self.fig_down.clear()
+            '''
             num = len(frequency)
             if num <= 4:
                 row = 1
@@ -317,6 +317,25 @@ class WeekeryApp(Tk):
                 b.axis('equal')
                 b.set_xlabel('(Top 10)')
                 b.set_title(week_label)
+            '''
+            sum_ax = self.fig_down.add_subplot(1, 2, 1)
+            sum_key = list(frequency.keys())[0]
+            labels = frequency[sum_key][0][:10]
+            count = frequency[sum_key][1][:10]
+            sum_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Set3)
+            sum_ax.axis('equal')
+            sum_ax.set_xlabel('(Top 10)')
+            sum_ax.set_title(sum_key)
+            
+            last_ax = self.fig_down.add_subplot(1, 2, 2)
+            last_key = list(frequency.keys())[1]
+            labels = frequency[last_key][0][:10]
+            count = frequency[last_key][1][:10]
+            last_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Paired)
+            last_ax.axis('equal')
+            last_ax.set_xlabel('(Top 10)')
+            last_ax.set_title(last_key)
+            
             self.fig_down.canvas.draw()
 
         elif self.canvas_show == 'sleep':
