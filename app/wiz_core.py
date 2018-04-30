@@ -42,15 +42,31 @@ def read_ziw(input_string):
     return soup_list, file_list
 
 
-def generator(tables, color_kind=None):
+def table2dataframe(html, color_kind=None, header='off'):
+    # if header == 'on':
+    #     set first row as table header
+    # if header == 'off':
+    #     set number sequence as table header
+    #
+    # color_kind = {'rgb(0,0,0)':'black',
+    #               'rgb(1,1,1)':'white', ...}
+    #
+    # df_list = [(df, kd), (df, kd),...]
+    df_list = []
+    tables = html.find_all('tbody')
     for table in tables:
         row = len(table)
         # count col number
-        col_list = [len(tr) for tr in table.children]
-        # delete '\t' take over an empty column
-        # for td in tr.children:
-        #    if type(td) == bs4.element.NavigableString:
-        #        len_tr -= 1
+        col_list = [len(tr.find_all('td')) for tr in table.children]
+        '''
+        delete '\t' take over an empty column
+        >>> for td in tr.children:
+        >>>     if type(td) == bs4.element.NavigableString:
+        >>>         len_tr -= 1
+        
+        replaced by counting all <td> tag num to void '\t' problem
+        >>> len(tr.find_all('td'))
+        '''
         col = max(col_list)
         columns = np.arange(0, col)
         index = np.arange(0, row)
@@ -60,17 +76,19 @@ def generator(tables, color_kind=None):
         kd = pd.DataFrame(index=index, columns=columns)
         skip_index = np.zeros([row, col], dtype=np.bool)
         for r, tr in enumerate(table.children):
-            for c, td in enumerate(tr.children):
+            for c, td in enumerate(tr.find_all('td')):
                 if type(td) == bs4.element.NavigableString:
                     continue
                 else:
                     attrs = td.attrs
 
-                if td.string:
+                if td.string is None:
                     string = ''
                     for item in td.contents:
                         if isinstance(item, bs4.element.NavigableString):
                             string += str(item)
+                        elif isinstance(item, bs4.element.Tag) and item.string is not None:
+                            string += str(item.string)
                     if string == '':
                         string = np.nan
                 else:
@@ -127,21 +145,8 @@ def generator(tables, color_kind=None):
                 kd.ix[r][c] = color
                 # change skip_index to True if cell already has value
                 skip_index[r, c] = True
-        yield [df, kd]
-
-
-def table2dataframe(html, color_kind=None, header='off'):
-    # if header == 'on':
-    #     set first row as table header
-    # if header == 'off':
-    #     set number sequence as table header
-    #
-    # color_kind = {'rgb(0,0,0)':'black',
-    #               'rgb(1,1,1)':'white', ...}
-    #
-    # df_list = [(df, kd), (df, kd),...]
-    tables = html.find_all('tbody')
-    df_list = list(generator(tables, color_kind=color_kind))
+                
+        df_list.append([df, kd])
 
     return df_list
 

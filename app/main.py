@@ -319,22 +319,26 @@ class WeekeryApp(Tk):
                 b.set_title(week_label)
             '''
             sum_ax = self.fig_down.add_subplot(1, 2, 1)
-            sum_key = list(frequency.keys())[0]
-            labels = frequency[sum_key][0][:10]
-            count = frequency[sum_key][1][:10]
-            sum_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Set3)
-            sum_ax.axis('equal')
-            sum_ax.set_xlabel('(Top 10)')
-            sum_ax.set_title(sum_key)
-            
             last_ax = self.fig_down.add_subplot(1, 2, 2)
-            last_key = list(frequency.keys())[1]
-            labels = frequency[last_key][0][:10]
-            count = frequency[last_key][1][:10]
-            last_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Paired)
-            last_ax.axis('equal')
-            last_ax.set_xlabel('(Top 10)')
-            last_ax.set_title(last_key)
+            if list(frequency.keys()) == ['Summary']:
+                sum_ax.set_title('暂无数据')
+                last_ax.set_title('╮( · ω · )╭怪我咯')
+            else:
+                sum_key = list(frequency.keys())[0]
+                labels = frequency[sum_key][0][:10]
+                count = frequency[sum_key][1][:10]
+                sum_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Set3)
+                sum_ax.axis('equal')
+                sum_ax.set_xlabel('(Top 10)')
+                sum_ax.set_title(sum_key)
+                
+                last_key = list(frequency.keys())[1]
+                labels = frequency[last_key][0][:10]
+                count = frequency[last_key][1][:10]
+                last_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Paired)
+                last_ax.axis('equal')
+                last_ax.set_xlabel('(Top 10)')
+                last_ax.set_title(last_key)
             
             self.fig_down.canvas.draw()
 
