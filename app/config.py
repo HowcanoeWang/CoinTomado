@@ -88,6 +88,7 @@ class Config(object):
                         logging.info('Gave up folder selection')
                         self.cancel = True
                         self.root.destroy()
+                        raise SystemExit
                         loop = False
                 else:
                     if os.path.exists(wiz_dir + '/Wiz.log') and os.path.exists(wiz_dir + '/Data'):
@@ -99,6 +100,7 @@ class Config(object):
                             '[' + wiz_dir + '/Data]' + 'is not a wiz data folder')
                         self.cancel = True
                         self.root.destroy()
+                        raise SystemExit
                         loop = False
                     else:
                         ans = askyesno('警告', '此文件夹非为知笔记数据文件夹, 重新选择？')
@@ -106,6 +108,7 @@ class Config(object):
                             logging.info('Gave up reselect wiz data folder')
                             self.cancel = True
                             self.root.destroy()
+                            raise SystemExit
                             loop = False
             else:
                 return
@@ -142,6 +145,7 @@ class Config(object):
                         showwarning('警告', '用户取消选择，初始化停止')
                         self.cancel = True
                         self.root.destroy()
+                        raise SystemExit
                         loop = False
             else:
                 return
@@ -151,6 +155,7 @@ class Config(object):
             showwarning('警告', '未找到存在的用户名，请登陆为知笔记同步后再次运行')
             self.cancel = True
             self.root.destroy()
+            raise SystemExit
             return
         # ^[Exception 4] ends
 
@@ -187,6 +192,7 @@ class Config(object):
                 if not ans:
                     self.cancel = True
                     self.root.destroy()
+                    raise SystemExit
                     return
 
         self._write_config()
@@ -234,6 +240,7 @@ class Config(object):
                 logging.info('user selected to modify config mannually')
                 self.cancel = True
                 self.root.destroy()
+                raise SystemExit
                 return
             else:
                 logging.info('user selected to initialize config automatically')

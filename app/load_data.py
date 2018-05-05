@@ -271,6 +271,16 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
         if not read_list:
             showinfo('通知', '暂无自上次运行时间到今日可读周记, 请新建本周周记后再次运行！')
             return
+
+    if isinstance(order, int):
+        start_date = int((datetime.datetime.today() - datetime.timedelta(weeks=order)).strftime('%Y%m%d'))
+        for id_date, id_filename in zip(id_dates, id_filenames):
+            if (start_date <= id_date[-1]) and (today >= id_date[0]):
+                read_list.append(id_filename)
+                date_list.append(id_date)
+        if not read_list:
+            showinfo('通知', '暂无' + str(order) +'周前到今日可读周记, 请新建对应周记后再次运行！')
+            return
         
     if order == "all":
         days.drop_table()

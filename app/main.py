@@ -1,18 +1,18 @@
 # -*- coding:utf-8 -*-
-from tkinter import Tk, Toplevel, Button, Frame
+from tkinter import Tk, Toplevel, Button, Frame, Listbox, Label, END
 
 
 class WeekeryApp(Tk):
     def __init__(self):
         super().__init__()
-        self.canvas_show = 'frequency'  # or 'sleep'
+        self.canvas_show = 'pie'  # or 'sleep'
 
         self.withdraw()
         splash = Splash(self)
         splash.pgb['maximum'] = 5
 
         import matplotlib
-        #matplotlib.use('TkAgg')
+        # matplotlib.use('TkAgg')
         
         import matplotlib.pyplot as plt
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -45,10 +45,12 @@ class WeekeryApp(Tk):
         |- Frame_Left
         |  |- Frame_btn_left.top
         |  |  |- left(btn{d,w,m,y})
-        |  |  |- right(btn{+,-})
+        |  |  |- right(btn{sleep,freq_pic,freq_bar})
         |  |  |- Frame_btn_mid
         |  |     |- <.left
+        |  |     |- +.left
         |  |     |- >.right
+        |  |     |- -.right
         |  |     |- calendar.middle
         |  |- fig_up.top
         |  |- fig_down.top
@@ -56,7 +58,6 @@ class WeekeryApp(Tk):
            |- Frame_btn_right
            |  |- btn_setting.right
            |  |- btn_reload.right
-           |  |- btn_switch.left
            |- Text.bottom.top expand=both
         '''
         # ====== Frames ======
@@ -80,12 +81,12 @@ class WeekeryApp(Tk):
         self.btn_months.config(bg='white')
         self.btn_years = Button(self.frame_btn_left, text='年', command=self.years)
         self.btn_years.config(bg='white')
-        self.btn_plus = Button(self.frame_btn_left, text='十', command=self.plus)
-        self.btn_plus.config(bg='white')
-        self.btn_minus = Button(self.frame_btn_left, text='一', command=self.minus)
-        self.btn_minus.config(bg='white')
-        self.btn_switch = Button(self.frame_btn_left, text='睡眠|词频', command=self.switch)
-        self.btn_switch.config(bg='white')
+        self.btn_switch_freq_pie = Button(self.frame_btn_left, text='饼图', command=self.pie)
+        self.btn_switch_freq_pie.config(bg='white')
+        self.btn_switch_sleep = Button(self.frame_btn_left, text='睡眠', command=self.sleep)
+        self.btn_switch_sleep.config(bg='white')
+        self.btn_switch_freq_bar = Button(self.frame_btn_left, text='词频', command=self.bar)
+        self.btn_switch_freq_bar.config(bg='white')
 
         self.btn_previous = Button(self.frame_btn_mid, text='《', command=self.previous)
         self.btn_previous.config(bg='white')
@@ -93,6 +94,10 @@ class WeekeryApp(Tk):
         self.btn_backward.config(bg='white')
         self.btn_calendar = Button(self.frame_btn_mid, text="日历", command=self.ask_selected_date)
         self.btn_calendar.config(bg='white')
+        self.btn_plus = Button(self.frame_btn_mid, text='十', command=self.plus)
+        self.btn_plus.config(bg='white')
+        self.btn_minus = Button(self.frame_btn_mid, text='一', command=self.minus)
+        self.btn_minus.config(bg='white')
 
         self.btn_reload = Button(self.frame_btn_right, text='重载', command=self.reload)
         self.btn_reload.config(bg='white')
@@ -131,13 +136,15 @@ class WeekeryApp(Tk):
         self.btn_weeks.pack(side='left')
         self.btn_months.pack(side='left')
         self.btn_years.pack(side='left')
-        self.btn_switch.pack(side='right')
-        self.btn_minus.pack(side='right')
-        self.btn_plus.pack(side='right')
+        self.btn_switch_freq_bar.pack(side='right')
+        self.btn_switch_freq_pie.pack(side='right')
+        self.btn_switch_sleep.pack(side='right')
         self.frame_btn_mid.pack(side='top')
         # # # # level-4
         self.btn_previous.pack(side='left')
+        self.btn_minus.pack(side='left')
         self.btn_backward.pack(side='right')
+        self.btn_plus.pack(side='right')
         self.btn_calendar.pack(side='top')
 
         # level-1
@@ -166,7 +173,7 @@ class WeekeryApp(Tk):
         splash.update()
         splash.destroy()
         # ============= Show Main GUI ==============
-        # self.protocol('WM_DELETE_WINDOW', self.close_window)
+        self.protocol('WM_DELETE_WINDOW', self.close_window)
         self.wm_state('zoomed')  # maximize windows
         self.deiconify()
 
@@ -206,6 +213,37 @@ class WeekeryApp(Tk):
             self._paint()
 
         return select_calendar.selected_days
+
+    def reload(self):
+        reload_option = ReloadOption()
+        self.wait_window(reload_option)
+        if reload_option.reload_mode:
+            if reload_option.reload_mode == '全部重载':
+                read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 'all', dialog=False)
+                showinfo('提示', '全部数据重载完成！')
+                self.weeks()
+            elif reload_option.reload_mode == '最近一周':
+                read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 1, dialog=False)
+                showinfo('提示', '最近一周数据重载完成！')
+                self.weeks()
+            elif reload_option.reload_mode == '最近一个月':
+                read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 4, dialog=False)
+                showinfo('提示', '最近一个月数据重载完成！')
+                self.weeks()
+            elif reload_option.reload_mode == '最近三个月':
+                read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 12, dialog=False)
+                showinfo('提示', '最近三个月数据重载完成！')
+                self.weeks()
+            elif reload_option.reload_mode == '最近半年':
+                read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 26, dialog=False)
+                showinfo('提示', '最近半年数据重载完成！')
+                self.weeks()
+            elif reload_option.reload_mode == '最近一年':
+                read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 52, dialog=False)
+                showinfo('提示', '最近一年数据重载完成！')
+                self.weeks()
+            else:
+                pass
 
     def days(self):
         self.btn_days.config(state="disable")
@@ -259,13 +297,16 @@ class WeekeryApp(Tk):
         self.controls.minus()
         self._paint()
     
-    def switch(self):
-        if self.canvas_show == 'frequency':
-            self.canvas_show = 'sleep'
-        elif self.canvas_show == 'sleep':
-            self.canvas_show = 'frequency'
-        else:
-            pass
+    def pie(self):
+        self.canvas_show = 'pie'
+        self._paint()
+
+    def bar(self):
+        self.canvas_show = 'bar'
+        self._paint()
+
+    def sleep(self):
+        self.canvas_show = 'sleep'
         self._paint()
     
     def _paint(self):
@@ -292,32 +333,8 @@ class WeekeryApp(Tk):
         self.fig_up.canvas.draw()
 
         # paint canvas_down
-        if self.canvas_show == 'frequency':
+        if self.canvas_show == 'pie':
             self.fig_down.clear()
-            '''
-            num = len(frequency)
-            if num <= 4:
-                row = 1
-                col = num
-            else:
-                logging.error('number of x' + str(num) + ' axis out of range (8)')
-                return
-            # plot
-            for i, key in enumerate(frequency):
-                b = self.fig_down.add_subplot(row, col, i+1)
-                week_label = key
-                labels = frequency[key][0][:10]
-                count = frequency[key][1][:10]
-                b.set_title(week_label)
-
-                if week_label == 'Summary':
-                    b.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Set3)
-                else:
-                    b.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Paired)
-                b.axis('equal')
-                b.set_xlabel('(Top 10)')
-                b.set_title(week_label)
-            '''
             sum_ax = self.fig_down.add_subplot(1, 2, 1)
             last_ax = self.fig_down.add_subplot(1, 2, 2)
             if list(frequency.keys()) == ['Summary']:
@@ -341,6 +358,9 @@ class WeekeryApp(Tk):
                 last_ax.set_title(last_key)
             
             self.fig_down.canvas.draw()
+
+        elif self.canvas_show == 'bar':
+            showinfo('啊偶', '功能开发中')
 
         elif self.canvas_show == 'sleep':
             self.fig_down.clear()
@@ -370,7 +390,6 @@ class WeekeryApp(Tk):
 
             axes2.set_xticks(list(range(1, sl + 1)))
             axes2.set_xticklabels(list(sleep_condition.index))
-
 
             patches = []
             for i, sid in enumerate(sleep_condition.index):
@@ -413,14 +432,6 @@ class WeekeryApp(Tk):
             self.notes.tag_config('Subtitle', foreground='gray', justify="center", font=25)
             self.notes.tag_config('Heading', foreground='black', justify="left", font=17)
             self.notes.tag_config('Text', foreground='gray', justify="left", font=15)
-
-
-    def reload(self):
-        ans = askyesno('警告', '重新读取所有数据？')
-        if ans:
-            read_data(self, self.cfg, self.pgb, self.id_dates, self.id_filenames, 'all', dialog=False)
-            showinfo('提示', '重新读取数据完成！')
-            self.weeks()
     
     @staticmethod
     def settings():
@@ -459,7 +470,7 @@ class WeekeryApp(Tk):
 
 class Splash(Toplevel):
     def __init__(self, parent):
-        from tkinter import  Label, PhotoImage
+        from tkinter import Label, PhotoImage
         from tkinter.ttk import Progressbar
 
         Toplevel.__init__(self, parent)
@@ -472,7 +483,7 @@ class Splash(Toplevel):
         height = round(screenheight / 30) * 10
 
         self.gif1 = PhotoImage(file='timg.gif')
-        self.gif1 = self.gif1.subsample(3,3)
+        self.gif1 = self.gif1.subsample(3, 3)
         self.label = Label(self, image=self.gif1)
         self.label.config(width=width, height=height-20, bg='white', bd=1)
 
@@ -494,7 +505,6 @@ class CalendarPopup(Toplevel):
         self.title('选择日期')
 
         self.frame_cal = Frame(self)
-
         self.calendar = Calendar(self.frame_cal, firstweekday=calendar.MONDAY)
         self.btnselect = Button(self.frame_cal, text="选择", command=self.select_focus_days)
 
@@ -507,6 +517,30 @@ class CalendarPopup(Toplevel):
         back = Calendar.selection(self.calendar)
         if back:
             self.selected_days = back
+        self.destroy()
+
+
+class ReloadOption(Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.title('重载设置')
+        self.reload_mode = None
+        self.label = Label(self, text="请选择重新加载的范围：")
+        self.lb = Listbox(self, width=40)
+        self.fm = Frame(self)
+        self.ok = Button(self.fm, text="重载", command=self.select_mode)
+        self.cancel = Button(self.fm, text="取消", command=self.destroy)
+        for item in ['最近一周', '最近一个月', '最近三个月', '最近半年', '最近一年', '全部重载']:
+            self.lb.insert(END, item)
+        self.lb.select_set(5)
+        self.label.pack(side='top')
+        self.lb.pack(side='top', fill='both', expand='YES')
+        self.fm.pack(side='top')
+        self.ok.pack(side='left')
+        self.cancel.pack(side='right')
+
+    def select_mode(self):
+        self.reload_mode = self.lb.get(self.lb.curselection())
         self.destroy()
 
 
