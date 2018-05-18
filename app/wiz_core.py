@@ -155,7 +155,8 @@ def read_notes(html):
     h1 = html.h1
     tags = h1.next_siblings
 
-    ''' # method 1 use string
+    ''' 
+    # method1 use string
     notes = h1.string
     for tag in tags:
         string = tag.string
@@ -163,7 +164,7 @@ def read_notes(html):
             notes += tag.string
     '''
 
-    # method 2 use dictionary
+    # method2 use dictionary
     string = re.sub('[:：]', ' ', h1.string.strip())
     notes = {string.split()[0]: string.split()[1]}
     for tag in tags:
@@ -183,6 +184,11 @@ def read_notes(html):
                 notes[key] = value
             else:
                 notes[key] += value
+
+    """
+    # method3 use attr(font, color, size and so on) to find right tags
+    if there no any same the attr.
+    """
 
     # Bug1: Some 'error' in wiz
     # Parent of tag "h1" and content of tag "【其他总结】" are the same tag.
