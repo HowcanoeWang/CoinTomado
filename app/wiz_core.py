@@ -145,7 +145,7 @@ def table2dataframe(html, color_kind=None, header='off'):
                 kd.ix[r][c] = color
                 # change skip_index to True if cell already has value
                 skip_index[r, c] = True
-                
+
         df_list.append([df, kd])
 
     return df_list
@@ -184,18 +184,21 @@ def read_notes(html):
             else:
                 notes[key] += value
 
-    # Some 'error' in wiz
+    # Bug1: Some 'error' in wiz
     # Parent of tag "h1" and content of tag "【其他总结】" are the same tag.
     # So can I say what, ¯\\_(ツ)_/¯ .
     # And it's not good way to deal with it.
-    tmp = map(lambda x: x.string, h1.parent.next_siblings)
+
+    # Bug2: can't across figure to read text
+    # Using .text replace .string to fix figure problem.
+    tmp = map(lambda x: x.text, h1.parent.next_siblings)
     tmp = filter(lambda x: isinstance(x, str), tmp)
     notes[key] += '\n'.join(tmp)  # key is LOCAL variable.
 
     return notes
 
 if __name__ == '__main__':
-    file_path = r'D:\18[02.05-02.ziw'
+    file_path = r'C:\Users\Zero\Documents\My Knowledge\Data\zeroto521@gmil.com\My Weekery\2018\exp_2.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",
