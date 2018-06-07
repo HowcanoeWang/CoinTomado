@@ -155,18 +155,9 @@ def read_notes(html):
     h1 = html.h1
     tags = h1.next_siblings
 
-    ''' 
-    # method1 use string
-    notes = h1.string
-    for tag in tags:
-        string = tag.string
-        if isinstance(string, str):
-            notes += tag.string
-    '''
-
-    # method2 use dictionary
     string = re.sub('[:：]', ' ', h1.string.strip())
     notes = {string.split()[0]: string.split()[1]}
+
     for tag in tags:
         string = tag.string
         if isinstance(string, str):
@@ -185,26 +176,17 @@ def read_notes(html):
             else:
                 notes[key] += value
 
-    """
-    # method3 use attr(font, color, size and so on) to find right tags
-    if there no any same the attr.
-    """
-
-    # Bug1: Some 'error' in wiz
-    # Parent of tag "h1" and content of tag "【其他总结】" are the same tag.
-    # So can I say what, ¯\\_(ツ)_/¯ .
-    # And it's not good way to deal with it.
-
-    # Bug2: can't across figure to read text
-    # Using .text replace .string to fix figure problem.
-    tmp = map(lambda x: x.text, h1.parent.next_siblings)
-    tmp = filter(lambda x: isinstance(x, str), tmp)
-    notes[key] += '\n'.join(tmp)  # key is LOCAL variable.
+    try:
+        tmp = map(lambda x: x.text, h1.parent.next_siblings)
+        tmp = filter(lambda x: isinstance(x, str), tmp)
+        notes[key] += '\n'.join(tmp)  # key is LOCAL variable.
+    except UnboundLocalError:
+        pass
 
     return notes
 
 if __name__ == '__main__':
-    file_path = r'C:\Users\Zero\Documents\My Knowledge\Data\zeroto521@gmil.com\My Weekery\2018\exp_2.ziw'
+    file_path = r'D:\新建文件夹\18[05.28-06.03]W22.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",
