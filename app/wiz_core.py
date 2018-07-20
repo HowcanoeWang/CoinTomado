@@ -152,41 +152,68 @@ def table2dataframe(html, color_kind=None, header='off'):
 
 
 def read_notes(html):
-    h1 = html.h1
-    tags = h1.next_siblings
+    data = html.findAll(text=True)
+    
+    def visible(element):
+        #print(str(element.parent.attrs))
+        #print(element, '\n')
+        if element.parent.name in ['style', 'script', '[document]', 'head', 'title']:
+            return False
+        elif re.match('<!--.*-->', str(element.encode('utf-8'))):
+            return False
+        elif len(element.parent.attrs.keys()) > 0:
+            if any(key in element.parent.attrs.keys() for key in ['rowspan','colspan']):
+                return False
+            elif 'style' in element.parent.attrs.keys():
+                if any(keyword in dict(element.parent.attrs)['style'] for keyword in ['width:', 'background-color:']):
+                    return False
+        elif any(keyword in element for keyword in ['\t', '\n\n']):
+            return False
+        return True
+    
+    result = filter(visible, data)
 
-    string = re.sub('[:：]', ' ', h1.string.strip())
-    notes = {string.split()[0]: string.split()[1]}
-
-    for tag in tags:
-        string = tag.string
-        if isinstance(string, str):
-            string = string.strip()
-            key = re.search(r'(\[.+?\])|(【.+?】)', string)
-            if key:
-                key = key.group()
-                tmp = key  # temp to save key
-                value = string[len(key):]
+    notes = {}
+    _temp_key = ''
+    _temp_value = ''
+    _head = ''
+    _text = ''
+    for item in result:
+        if '【' in item and '】' in item:
+            notes[item] = ''
+            if _temp_value: # has content before, then save to {notes}
+                notes[_temp_key] = _temp_value
+                _temp_key = ''
+                _temp_value = ''
+            # not content, start recording
+            _temp_key = item
+        else:
+            if _temp_key: # this item is in this key.value, append
+                _temp_value += item
+                _temp_value += '\n'
             else:
-                key = tmp
-                value = string + '\n'
-            # save to dictionary
-            if key not in notes:
-                notes[key] = value
-            else:
-                notes[key] += value
-
-    try:
-        tmp = map(lambda x: x.text, h1.parent.next_siblings)
-        tmp = filter(lambda x: isinstance(x, str), tmp)
-        notes[key] += '\n'.join(tmp)  # key is LOCAL variable.
-    except UnboundLocalError:
-        pass
-
+                if '总结' in item and not _head:
+                    if ':' or '：' in item:
+                        if len(item.split('：')) > 1:
+                            ls = item.split('：')
+                            notes[ls[0]] = ls[1]
+                            _head = ls
+                        elif len(item.split(':')) > 1:
+                            ls = item.split(':')
+                            notes[ls[0]] = ls[1]
+                            _head = ls
+                        else:
+                            _text += item
+                            _text += '\n'
+                else:
+                    _text += item
+                    _text += '\n'
+    notes['其他文字'] = _text
     return notes
 
 if __name__ == '__main__':
-    file_path = r'D:\新建文件夹\18[05.28-06.03]W22.ziw'
+    #file_path = r'D:\新建文件夹\18[05.28-06.03]W22.ziw'
+    file_path = r'C:\Users\18251\Documents\My Knowledge\Data\18251920822@126.com\Time Log\My Weekry\2018\18[07.09-07.15]W28.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",
@@ -198,4 +225,4 @@ if __name__ == '__main__':
     notes = read_notes(soup_list[0])
     # df_list = table2dataframe(soup_list[0], color_kind)
     # print(df_list)
-    pprint.pprint(notes)
+    print(notes)

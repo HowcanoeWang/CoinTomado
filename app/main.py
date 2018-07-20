@@ -254,6 +254,8 @@ class WeekeryApp(Tk):
         self.controls.days()
         self._paint()
 
+        raise MemoryError
+
     def weeks(self):
         self.btn_days.config(state="normal")
         self.btn_weeks.config(state="disable")
