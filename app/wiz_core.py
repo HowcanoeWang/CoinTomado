@@ -179,19 +179,21 @@ def read_notes(html):
     _head = ''
     _text = ''
     for item in result:
+        # the item is dict key
+        print(_temp_key, notes.keys())
         if '【' in item and '】' in item:
-            notes[item] = ''
-            if _temp_value: # has content before, then save to {notes}
+            if _temp_key:
                 notes[_temp_key] = _temp_value
-                _temp_key = ''
-                _temp_value = ''
-            # not content, start recording
             _temp_key = item
+            _temp_value = ''
+        # the item is not the key
         else:
-            if _temp_key: # this item is in this key.value, append
-                _temp_value += item
-                _temp_value += '\n'
+            # this item is belonging to a key, append it to key.value
+            if _temp_key: 
+                _temp_value += item + '\n'
             else:
+            # this item belongis to no key
+            # often this happens in the head of notes
                 if '总结' in item and not _head:
                     if ':' or '：' in item:
                         if len(item.split('：')) > 1:
@@ -203,17 +205,18 @@ def read_notes(html):
                             notes[ls[0]] = ls[1]
                             _head = ls
                         else:
-                            _text += item
-                            _text += '\n'
+                            _text += item + '\n'
+                    else:
+                        _text += item + '\n'
                 else:
-                    _text += item
-                    _text += '\n'
+                    _text += item + '\n'
+                    
     notes['其他文字'] = _text
     return notes
 
 if __name__ == '__main__':
     #file_path = r'D:\新建文件夹\18[05.28-06.03]W22.ziw'
-    file_path = r'C:\Users\18251\Documents\My Knowledge\Data\18251920822@126.com\Time Log\My Weekry\2018\18[07.09-07.15]W28.ziw'
+    file_path = r'C:\Users\18251\Documents\My Knowledge\Data\18251920822@126.com\Time Log\My Weekry\2018\18[06.25-07.01]W26.ziw'
     color_kind = {"rgb(182, 202, 255)": "NaN",
                   "rgb(172, 243, 254)": "fun",
                   "rgb(178, 255, 161)": "rest",

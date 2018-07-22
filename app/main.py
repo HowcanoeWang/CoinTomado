@@ -254,8 +254,6 @@ class WeekeryApp(Tk):
         self.controls.days()
         self._paint()
 
-        raise MemoryError
-
     def weeks(self):
         self.btn_days.config(state="normal")
         self.btn_weeks.config(state="disable")
@@ -546,8 +544,37 @@ class ReloadOption(Toplevel):
         self.destroy()
 
 
+class TkErrorCatcher:
+
+    '''
+    In some cases tkinter will only print the traceback.
+    Enables the program to catch tkinter errors normally
+
+    To use
+    import tkinter
+    tkinter.CallWrapper = TkErrorCatcher
+    '''
+
+    def __init__(self, func, subst, widget):
+        self.func = func
+        self.subst = subst
+        self.widget = widget
+
+    def __call__(self, *args):
+        try:
+            if self.subst:
+                args = self.subst(*args)
+            return self.func(*args)
+        #except SystemExit as msg:
+        #    raise SystemExit(msg)
+        except Exception as err:
+            raise err
+
+
 if __name__ == '__main__':
     try:
+        import tkinter
+        tkinter.CallWrapper = TkErrorCatcher
         app = WeekeryApp()
         import math
         import numpy as np    
@@ -571,3 +598,4 @@ if __name__ == '__main__':
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         showinfo('报错', ''.join(line for line in lines))
+        app.destroy()
