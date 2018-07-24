@@ -1,6 +1,26 @@
 # -*- coding:utf-8 -*-
 from tkinter import Tk, Toplevel, Button, Frame, Listbox, Label, END
-
+from collections import Counter
+'''
+import tkinter
+import math
+import numpy as np    
+import matplotlib
+import matplotlib.patches as mpatches
+import calendar
+import sys
+from collections import Counter
+from calendar4wiz import Calendar
+from matplotlib.collections import PatchCollection
+from load_data import read_data
+from tkinter.messagebox import showinfo, askyesno
+import matplotlib
+# matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from tkinter.ttk import Progressbar, Style
+from tkinter import Frame, Button, Text
+'''
 
 class WeekeryApp(Tk):
     def __init__(self):
@@ -12,9 +32,11 @@ class WeekeryApp(Tk):
         splash.pgb['maximum'] = 5
 
         import matplotlib
+        import math
+        self.math = math
         # matplotlib.use('TkAgg')
-        
         import matplotlib.pyplot as plt
+        self.plt = plt
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
         from tkinter.ttk import Progressbar, Style
 
@@ -23,7 +45,6 @@ class WeekeryApp(Tk):
         splash.update()
 
         plt.style.use('ggplot')
-        
 
         matplotlib.rcParams['font.family'] = 'SimHei'
         self.Set3 = plt.cm.Set3(range(10))
@@ -197,7 +218,6 @@ class WeekeryApp(Tk):
         self.conn.commit()
 
         self.colors = {v: (int(f[4:7])/255, int(f[9:12])/255, int(f[14:17])/255, 1) for f, v in self.cfg.color_kind.items()}
-
         self._paint()
 
     def ask_selected_date(self):
@@ -309,7 +329,7 @@ class WeekeryApp(Tk):
         self.canvas_show = 'sleep'
         self._paint()
     
-    def _paint(self):
+    def _paint(self, pie_num=9):
         kinds = self.controls.kinds
         sleep_condition = self.controls.sleep_condition
         frequency = self.controls.frequency
@@ -329,7 +349,8 @@ class WeekeryApp(Tk):
         ax1.set_xticklabels(kinds.index, rotation=0)
         # box = ax1.get_position()
         # ax1.set_position([box.x0, box.y0, box.width * 0.95, box.height])
-        ax1.legend(loc='best', ncol=1, bbox_to_anchor=(1.0, 0.7))  # 0.96, 0.7
+        ax1.legend(loc='lower left', ncol=6, bbox_to_anchor=(0, 1.02, 1, 0.2), mode='expand')  # 0.96, 0.7, 
+        self.fig_up.tight_layout()
         self.fig_up.canvas.draw()
 
         # paint canvas_down
@@ -341,22 +362,44 @@ class WeekeryApp(Tk):
                 sum_ax.set_title('暂无数据')
                 last_ax.set_title('╮( · ω · )╭怪我咯')
             else:
+                # Summary Pie Chart
                 sum_key = list(frequency.keys())[0]
-                labels = frequency[sum_key][0][:10]
-                count = frequency[sum_key][1][:10]
-                sum_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Set3)
+                # calculate top pie_num keywords
+                labels, count = self._find_top(frequency[sum_key], pie_num)
+                up_pie = sum_ax.pie(count, labels=labels, labeldistance=0.5, 
+                                    pctdistance=0.85, autopct=self.make_autopct(count), 
+                                    shadow=False, startangle=0, colors=self.Set3)
+                for tx in up_pie[1]:
+                    x,y = tx.get_position()
+                    rot = int(self.math.degrees(self.math.atan2(y, x)))
+                    tx.set_rotation(rot+180 if rot < -90 else rot-180 if rot > 90 else rot)
+                    tx.set_va('center')
+                    tx.set_ha('center')
+                my_circle_up = self.plt.Circle((0,0), 0.7, color='white')
+                sum_ax.add_artist(my_circle_up)
                 sum_ax.axis('equal')
-                sum_ax.set_xlabel('(Top 10)')
+                #sum_ax.set_xlabel('(Top 9)')
                 sum_ax.set_title(sum_key)
                 
+                # Current Pie Chart
                 last_key = list(frequency.keys())[1]
-                labels = frequency[last_key][0][:10]
-                count = frequency[last_key][1][:10]
-                last_ax.pie(count, labels=labels, autopct=self.make_autopct(count), shadow=False, startangle=0, colors=self.Paired)
+                labels, count = self._find_top(frequency[last_key], pie_num)
+                down_pie = last_ax.pie(count, labels=labels, labeldistance=0.5, 
+                                       pctdistance=0.85,autopct=self.make_autopct(count), 
+                                       shadow=False, startangle=0, colors=self.Paired)
+                for tx in down_pie[1]:
+                    x,y = tx.get_position()
+                    rot = int(self.math.degrees(self.math.atan2(y, x)))
+                    tx.set_rotation(rot+180 if rot < -90 else rot-180 if rot > 90 else rot)
+                    tx.set_va('center')
+                    tx.set_ha('center')
+                my_circle_down = self.plt.Circle((0,0), 0.7, color='white')
+                last_ax.add_artist(my_circle_down)
                 last_ax.axis('equal')
-                last_ax.set_xlabel('(Top 10)')
+                #last_ax.set_xlabel('(Top 9)')
                 last_ax.set_title(last_key)
-            
+                
+            self.fig_down.tight_layout()
             self.fig_down.canvas.draw()
 
         elif self.canvas_show == 'bar':
@@ -405,7 +448,9 @@ class WeekeryApp(Tk):
             collection = PatchCollection(patches, facecolors='gray', alpha=0.6)
             axes2.add_collection(collection)
             axes2.invert_yaxis()
+            #axes2.set_ylabel('Time')
 
+            self.fig_down.tight_layout()
             self.fig_down.canvas.draw()
 
         # refresh note board
@@ -433,6 +478,39 @@ class WeekeryApp(Tk):
             self.notes.tag_config('Heading', foreground='black', justify="left", font=17)
             self.notes.tag_config('Text', foreground='gray', justify="left", font=15)
     
+    @staticmethod
+    def _find_top(key_list, top_num, debug=False):
+        '''
+        key_list = [['k1', 'k2', ...],[7,6,...]]
+        return label_list, count_list
+        '''
+        if debug: print('\n\n',key_list)
+        labels = key_list[0].copy()
+        counts = key_list[1].copy()
+        if debug: print(labels, counts)
+        
+        other_counts = 0
+        if 'Others' in  labels:
+            others_id = labels.index('Others')
+            other_counts = counts[others_id]
+            labels.pop(others_id)
+            counts.pop(others_id)
+            
+        if debug: print(labels, '\n',counts, '\n',other_counts)
+        
+        frequency = Counter({k:v for k,v in zip(labels, counts)})
+        if debug: print(frequency)
+        
+        frequen = dict(frequency.most_common(top_num))
+        total = sum(frequency.values()) + other_counts
+        frequen['Others'] = total - sum(frequen.values())
+        if debug: print(frequen)
+        
+        label_list = list(frequen.keys())
+        count_list = list(frequen.values())
+        
+        return label_list, count_list
+        
     @staticmethod
     def settings():
         showinfo('提示', '开发中，敬请期待')

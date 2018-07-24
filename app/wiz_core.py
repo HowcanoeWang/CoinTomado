@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import bs4
 from bs4 import BeautifulSoup
-import pprint
 
 
 def read_ziw(input_string):
@@ -180,7 +179,7 @@ def read_notes(html):
     _text = ''
     for item in result:
         # the item is dict key
-        print(_temp_key, notes.keys())
+        #print(_temp_key, notes.keys())
         if '【' in item and '】' in item:
             if _temp_key:
                 notes[_temp_key] = _temp_value

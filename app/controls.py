@@ -129,7 +129,8 @@ class Controls(object):
             else:
                 logging.info(date_str + 'not in ' + str(index_range))
 
-        frequen = dict(frequency_summary.most_common(10))
+        #frequen = dict(frequency_summary.most_common(10))
+        frequen = dict(frequency_summary)
         frequency['Summary'] = [list(frequen.keys()), list(frequen.values())]
 
         # query for notes data
