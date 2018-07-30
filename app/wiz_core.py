@@ -174,22 +174,19 @@ def read_notes(html):
 
     notes = {}
     _temp_key = ''
-    _temp_value = ''
     _head = ''
     _text = ''
     for item in result:
         # the item is dict key
         #print(_temp_key, notes.keys())
         if '【' in item and '】' in item:
-            if _temp_key:
-                notes[_temp_key] = _temp_value
             _temp_key = item
-            _temp_value = ''
+            notes[_temp_key] = ''
         # the item is not the key
         else:
             # this item is belonging to a key, append it to key.value
             if _temp_key: 
-                _temp_value += item + '\n'
+                notes[_temp_key] += item + '\n'
             else:
             # this item belongis to no key
             # often this happens in the head of notes

@@ -57,9 +57,11 @@ class WeekeryApp(Tk):
         # +++++++++++++++
         # +  GUI_setup  +
         # +++++++++++++++
-        from tkinter import Frame, Button, Text
+        from tkinter import Frame, Text
+        from tkinter import ttk
+        from tkinter.ttk import Button
         self.title('Weekery')
-        Style().theme_use('vista')
+        #Style().theme_use('clam')
         '''
         root
         |- Progressbar.bottom
@@ -73,6 +75,7 @@ class WeekeryApp(Tk):
         |  |     |- >.right
         |  |     |- -.right
         |  |     |- calendar.middle
+        |  |     |- label_date
         |  |- fig_up.top
         |  |- fig_down.top
         |- Frame_Right
@@ -94,36 +97,39 @@ class WeekeryApp(Tk):
         self.frame_btn_right.config(bg='white')
 
         # ====== Buttons ======
-        self.btn_days = Button(self.frame_btn_left, text='日', command=self.days)
-        self.btn_days.config(bg='white', state='disable')
-        self.btn_weeks = Button(self.frame_btn_left, text='周', command=self.weeks)
-        self.btn_weeks.config(bg='white')
-        self.btn_months = Button(self.frame_btn_left, text='月', command=self.months)
-        self.btn_months.config(bg='white')
-        self.btn_years = Button(self.frame_btn_left, text='年', command=self.years)
-        self.btn_years.config(bg='white')
-        self.btn_switch_freq_pie = Button(self.frame_btn_left, text='饼图', command=self.pie)
-        self.btn_switch_freq_pie.config(bg='white')
-        self.btn_switch_sleep = Button(self.frame_btn_left, text='睡眠', command=self.sleep)
-        self.btn_switch_sleep.config(bg='white')
-        self.btn_switch_freq_bar = Button(self.frame_btn_left, text='词频', command=self.bar)
-        self.btn_switch_freq_bar.config(bg='white')
+        ttk.Style().configure("TButton", background='white')
+        ttk.Style().configure("symbol.TButton", font=(20))
+        #ttk.Style().configure("TButton", foreground='white')
+        self.btn_days = Button(self.frame_btn_left, text='日', command=self.days, width=3)
+        self.btn_days.config(state='disable') #bg='white', 
+        self.btn_weeks = Button(self.frame_btn_left, text='周', command=self.weeks, width=3)
+        #self.btn_weeks.config(bg='white')
+        self.btn_months = Button(self.frame_btn_left, text='月', command=self.months, width=3)
+        #self.btn_months.config(bg='white')
+        self.btn_years = Button(self.frame_btn_left, text='年', command=self.years, width=3)
+        #self.btn_years.config(bg='white')
+        self.btn_switch_freq_pie = Button(self.frame_btn_left, text='饼图', command=self.pie, width=6)
+        #self.btn_switch_freq_pie.config(bg='white')
+        self.btn_switch_sleep = Button(self.frame_btn_left, text='睡眠', command=self.sleep, width=6)
+        #self.btn_switch_sleep.config(bg='white')
+        self.btn_switch_freq_bar = Button(self.frame_btn_left, text='词频', command=self.bar, width=6)
+        #self.btn_switch_freq_bar.config(bg='white')
 
-        self.btn_previous = Button(self.frame_btn_mid, text='《', command=self.previous)
-        self.btn_previous.config(bg='white')
-        self.btn_backward = Button(self.frame_btn_mid, text='》', command=self.backward)
-        self.btn_backward.config(bg='white')
-        self.btn_calendar = Button(self.frame_btn_mid, text="日历", command=self.ask_selected_date)
-        self.btn_calendar.config(bg='white')
-        self.btn_plus = Button(self.frame_btn_mid, text='十', command=self.plus)
-        self.btn_plus.config(bg='white')
-        self.btn_minus = Button(self.frame_btn_mid, text='一', command=self.minus)
-        self.btn_minus.config(bg='white')
+        self.btn_previous = Button(self.frame_btn_mid, text='◀', style='symbol.TButton', command=self.previous, width=2)
+        #self.btn_previous.config(bg='white')
+        self.btn_backward = Button(self.frame_btn_mid, text='▶', style='symbol.TButton',command=self.backward, width=2)
+        #self.btn_backward.config(bg='white')
+        self.btn_calendar = Button(self.frame_btn_mid, text="▦", style='symbol.TButton',command=self.ask_selected_date, width=2)
+        #self.btn_calendar.config(bg='white')
+        self.btn_plus = Button(self.frame_btn_mid, text='+', style='symbol.TButton', command=self.plus, width=2)
+        #self.btn_plus.config(bg='white')
+        self.btn_minus = Button(self.frame_btn_mid, text='-',style='symbol.TButton', command=self.minus, width=2)
+        #self.btn_minus.config(bg='white')
 
-        self.btn_reload = Button(self.frame_btn_right, text='重载', command=self.reload)
-        self.btn_reload.config(bg='white')
-        self.btn_settings = Button(self.frame_btn_right, text='设置', command=self.settings)
-        self.btn_settings.config(bg='white')
+        self.btn_reload = Button(self.frame_btn_right, text='重载', command=self.reload, width=6)
+        #self.btn_reload.config(bg='white')
+        self.btn_settings = Button(self.frame_btn_right, text='设置', command=self.settings, width=6)
+        #self.btn_settings.config(bg='white')
 
         # ====== Others ======
         self.fig_up = plt.figure(figsize=(7, 3))
@@ -135,6 +141,8 @@ class WeekeryApp(Tk):
 
         self.notes = Text(self.frame_right, width=50)
         self.notes.config(bg='azure')
+        
+        self.label_date = Label(self.frame_btn_mid, text='加载中...', width=15)
 
         splash.pgb['value'] = 3
         splash.label.image = splash.gif1
@@ -166,7 +174,8 @@ class WeekeryApp(Tk):
         self.btn_minus.pack(side='left')
         self.btn_backward.pack(side='right')
         self.btn_plus.pack(side='right')
-        self.btn_calendar.pack(side='top')
+        self.btn_calendar.pack(side='left')
+        self.label_date.pack(side='right')
 
         # level-1
         self.frame_right.pack(side='left', fill='both', expand='YES')
@@ -477,7 +486,10 @@ class WeekeryApp(Tk):
             self.notes.tag_config('Subtitle', foreground='gray', justify="center", font=25)
             self.notes.tag_config('Heading', foreground='black', justify="left", font=17)
             self.notes.tag_config('Text', foreground='gray', justify="left", font=15)
-    
+        # refresh label_date
+        date_str = f'{self.controls.y}年{self.controls.m}月{self.controls.d}日' 
+        self.label_date.config(text=date_str)
+        
     @staticmethod
     def _find_top(key_list, top_num, debug=False):
         '''
@@ -581,6 +593,7 @@ class CalendarPopup(Toplevel):
         self.selected_days = None
         super().__init__()
         self.title('选择日期')
+        self.geometry('250x200')
 
         self.frame_cal = Frame(self)
         self.calendar = Calendar(self.frame_cal, firstweekday=calendar.MONDAY)
