@@ -2,8 +2,12 @@ __future__
 __pycache__
 __exes__
 cache
+/.history
+/tests
+
 *.txt
 
 *.pkl
 
 *.xls
+app/tempCodeRunnerFile.py
