@@ -1,13 +1,22 @@
+# python cache folder
 __future__
 __pycache__
 __exes__
+
+# program data file folder
 cache
+
+# vs code local code history folder
 /.history
-/tests
 
+# file
 *.txt
-
 *.pkl
-
 *.xls
+
+# vs code temp python file
 app/tempCodeRunnerFile.py
+
+
+# test function
+app/test.py
