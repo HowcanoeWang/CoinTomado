@@ -9,13 +9,18 @@ zip_url_base = 'https://www.sigmameow.com/app/wiz_statistics/'
 
 
 def getHtml(url):
-    """using `requests` download html.
+    """
+    Using `requests` download html.
 
-    Arguments:
-        url {str} -- target url.
+    Parameters
+    ----------
+    url : string 
+        target url
 
-    Returns:
-        str -- target html page.
+    Returns
+    -------
+    string
+        target html page
     """
 
     r = requests.get(version_url, timeout=2)
@@ -23,13 +28,18 @@ def getHtml(url):
 
 
 def getNetVersion(html):
-    """from html get the the newest version.
+    """
+    From html get the the newest version (network version) number.
 
-    Arguments:
-        html {str} -- target html page.
+    Parameters
+    ----------
+    html : string
+        target html page
 
-    Returns:
-        str -- the newest version.
+    Returns
+    -------
+    string 
+        the network version number
     """
 
     soup = BeautifulSoup(html, 'html.parser')
@@ -38,13 +48,18 @@ def getNetVersion(html):
 
 
 def versionCompared(netVersion):
-    """Compare version number to check whether update.
+    """
+    Compare version number to check it whether or not need update.
 
-    Arguments:
-        netVersion {str} -- network version
+    Parameters
+    ----------
+    netVersion : string
+        the network version
 
-    Returns:
-        bool -- check program whether need update.
+    Returns
+    -------
+    bool 
+        check program whether need update
     """
 
     currentVersion = NormalizedVersion(version.__version__)
@@ -56,10 +71,14 @@ def versionCompared(netVersion):
 
 
 def update():
-    """Return a net work version link.
+    """
+    Check it whether or not need update, 
+    if yes than return a new version link.
 
-    Returns:
-        str -- download link
+    Returns
+    -------
+    string 
+        new version download link
     """
 
     html = getHtml(version_url)
