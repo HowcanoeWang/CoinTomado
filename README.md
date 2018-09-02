@@ -4,28 +4,31 @@
 
 ## 截图
 
-![等待界面](images\1535887668865.png)
+![等待界面](/images/1535887668865.png)
 
-![主界面](images\1535888056546.png)
+![主界面](/images/1535888056546.png)
 
 ## 功能
 
-![功能](images/Wiz Statistics.png)
+![功能](/images/WizStatistics.png)
 
 ## 如何使用
 
-1. 安装[为知笔记](www.wiz.cn) ![Wiz Download Webside](/images/download.png)
+1. 安装[为知笔记](www.wiz.cn) 
+
+![Wiz Download Webside](/images/download.png)
 
 2. 使用**周记模板**
+
    1. **新建**周记文件夹，**My Weekery**
 
    2. 在**My Weekery**文件夹里面，新建当前年份的文件夹，**2017**
 
-![named year](/images/named_year.png)
+	![named year](/images/named_year.png)
 
    3. **下载**模板文件[WeekeryTemplate.wiztemplate](https://github.com/HowcanoeWang/WizStatistics/releases/download/Beta0.2/WeekeryTemplatev4.0.wiztemplate)并**导入**为知笔记
       
-![named year](/images/load_template.png)
+	![named year](/images/load_template.png)
 
    4. 设置模板，点击模板文件在编辑界面点分享按钮另存为模板。
 
@@ -43,7 +46,7 @@
 
 5. 运行 **stat_exercise.exe**
 
-![1535889497418](images/1535889497418.png)
+![1535889497418](/images/1535889497418.png)
 
 6. 选择周记文件夹**My Weekery**
 
