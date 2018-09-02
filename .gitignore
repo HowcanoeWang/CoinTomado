@@ -13,6 +13,7 @@ cache
 *.txt
 *.pkl
 *.xls
+*.ini
 
 # vs code temp python file
 app/tempCodeRunnerFile.py
@@ -20,3 +21,6 @@ app/tempCodeRunnerFile.py
 
 # test function
 app/test.py
+
+# xmind file
+*.xmind
