@@ -353,12 +353,13 @@ class WeekeryApp(Tk):
                                                                   self.colors['compel'],
                                                                   self.colors['useless'],
                                                                   self.colors['sleep']])
-        ax1.set_ylabel('Hours')
+        ax1.set_ylabel('小时')
         ax1.xaxis.grid()
         ax1.set_xticklabels(kinds.index, rotation=0)
         # box = ax1.get_position()
         # ax1.set_position([box.x0, box.y0, box.width * 0.95, box.height])
-        ax1.legend(loc='lower left', ncol=6, bbox_to_anchor=(0, 1.02, 1, 0.2), mode='expand')  # 0.96, 0.7, 
+        ax1.legend(('尽情娱乐','休息放松','火力全开','强迫工作','无效工作','睡眠小憩'),
+                   loc='lower left', ncol=6, bbox_to_anchor=(0, 1.02, 1, 0.2), mode='expand')  # 0.96, 0.7, 
         self.fig_up.tight_layout()
         self.fig_up.canvas.draw()
 
@@ -515,7 +516,7 @@ class WeekeryApp(Tk):
         
         frequen = dict(frequency.most_common(top_num))
         total = sum(frequency.values()) + other_counts
-        frequen['Others'] = total - sum(frequen.values())
+        frequen['其他'] = total - sum(frequen.values())
         if debug: print(frequen)
         
         label_list = list(frequen.keys())
