@@ -54,6 +54,7 @@ class WeekeryApp(Tk):
         splash.label.image = splash.gif1
         splash.update()
 
+        raise ImportError
         # +++++++++++++++
         # +  GUI_setup  +
         # +++++++++++++++
@@ -574,7 +575,15 @@ class Splash(Toplevel):
         height = round(screenheight / 30) * 10
 
         self.gif1 = PhotoImage(file='timg.gif')
-        self.gif1 = self.gif1.subsample(3, 3)
+        old_width = self.gif1.width()
+        old_height = self.gif1.height()
+        scale_w = width/old_width
+        scale_h = (height-20)/old_height
+        if scale_h < 1:
+            scale_h = 1 / scale_h
+        if scale_w < 1:
+            scale_w = 1 / scale_w
+        self.gif1 = self.gif1.subsample(int(scale_w), int(scale_h))
         self.label = Label(self, image=self.gif1)
         self.label.config(width=width, height=height-20, bg='white', bd=1)
 
@@ -661,8 +670,44 @@ class TkErrorCatcher:
         #    raise SystemExit(msg)
         except Exception as err:
             raise err
+            
 
-
+class BugReporter(Tk):
+    
+    def __init__(self, text):
+        Tk.__init__(self)
+        self.title('错误报告')
+        
+        screenwidth = self.winfo_screenwidth()
+        screenheight = self.winfo_screenheight()
+        width = round(screenwidth / 30) * 10
+        height = round(screenheight / 30) * 10
+        
+        self.geometry('%dx%d+%d+%d' % (width, height, (screenwidth - width)/2, (screenheight - height)/2))
+        self.label = Label(self, text=text, wraplength=width, justify='left')
+        self.btn_cancel = Button(self, text="取消", command=self.quit)
+        self.btn_send = Button(self, text="发送", command=self.email_sender)
+        
+        self.label.pack(side='top', fill='both', expand='YES')
+        self.btn_cancel.pack(side='left', fill='both', expand='YES')
+        self.btn_send.pack(side='right', fill='both', expand='YES')
+        
+        # play sould
+        th=threading.Thread(target=self.play_notice_sound)
+        th.setDaemon(True)#守护线程
+        th.start()
+        
+        self.mainloop()
+        
+    def email_sender(self):
+        showinfo('成功', '错误报告已发送，感谢您对本产品的支持')
+        self.quit()
+        
+    @staticmethod
+    def play_notice_sound():
+        winsound.PlaySound("SystemExit", winsound.SND_ALIAS)
+        
+        
 if __name__ == '__main__':
     try:
         import tkinter
@@ -685,9 +730,14 @@ if __name__ == '__main__':
         import sys
         import logging
         import traceback
+        import winsound
+        import threading
         from tkinter.messagebox import showinfo
         logging.exception('opps', exc_info=e)
         exc_type, exc_value, exc_traceback = sys.exc_info()
         lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        showinfo('报错', ''.join(line for line in lines))
-        app.destroy()
+        error_info = ''.join(line for line in lines)
+        BugReporter(text=error_info)
+
+        #showinfo('报错', error_info)
+        #app.destroy()
