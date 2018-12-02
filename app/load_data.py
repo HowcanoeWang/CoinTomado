@@ -131,6 +131,17 @@ def read_one_file(cfg, days, year_file_name):
         # --------- count frequency -----------
         one_day_string = string_data.iloc[:, n]
         string_num = one_day_string.value_counts().to_dict()
+        # split '|' by itmes, e.g. A|B|C in records, eash item A, B, C count for 0.33 unit
+        for key in list(string_num.keys()):
+            s = key.split('|')
+            devide = len(s)
+            if devide > 1:
+                for ss in s:
+                    if ss in string_num.keys():
+                        string_num[ss] += round(string_num[key] / devide, 2)
+                    else:
+                        string_num[ss] = round(string_num[key] / devide, 2)         
+                string_num.pop(key, None)
         # split '+' by items
         for key in list(string_num.keys()):
             s = key.split('+')

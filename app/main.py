@@ -54,7 +54,6 @@ class WeekeryApp(Tk):
         splash.label.image = splash.gif1
         splash.update()
 
-        raise ImportError
         # +++++++++++++++
         # +  GUI_setup  +
         # +++++++++++++++
