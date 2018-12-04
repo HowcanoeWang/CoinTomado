@@ -553,7 +553,8 @@ class WeekeryApp(Tk):
     def make_autopct(values):
         def my_autopct(pct):
             total = sum(values)
-            val = int(round(pct * total / 100.0))
+            #val = int(round(pct * total / 100.0))
+            val = pct * total / 100.0
             # return '{p:1.1f}%({v:1.1f}h)'.format(p=pct, v=val/2)
             return '{v:1.1f}h'.format(p=pct, v=val / 2)
         return my_autopct

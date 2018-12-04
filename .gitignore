@@ -2,6 +2,7 @@
 __future__
 __pycache__
 __exes__
+.idea
 
 # program data file folder
 cache

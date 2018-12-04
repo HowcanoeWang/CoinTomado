@@ -96,10 +96,10 @@
     ![1535890364073](images/1535890364073.png)
 
 1. 切换日周月年  
-   这里应该有一个演示的gif
+   ![dwmy](images/dwmy.gif)
 
 1. 切换当前日期  
-   这里应该有一个演示的gif
+   ![date_switch](images/date_switch.gif)
 
 1. 切换模式  
-   这里应该有一个演示的gif
+   ![mode_switch](images/mode_switch.gif)

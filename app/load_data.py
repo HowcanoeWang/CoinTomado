@@ -248,7 +248,7 @@ def read_one_file(cfg, days, year_file_name):
         if sleep_a and sleep_a[-1][-1] == 23.5:  # sleep to next day
             # >>> write [database.db]
             next_day = datetime.datetime.strptime(str(date), '%Y%m%d') + datetime.timedelta(days=1)
-            days.add((int(next_day.strftime('%Y%m%d')), sleep_a[-1][0] - 24), 'ID, sleep_st')
+            days.add((int(next_day.strftime('%Y%m%d')), sleep_a[0][0] - 24), 'ID, sleep_st')
         else:
             pass   # including overnoon e.g.[(12.00, 13:00)], still not sleep at night
             # [12.00,24:00]
