@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 from tkinter import Tk, Toplevel, Button, Frame, Listbox, Label, END
 from collections import Counter
+from datetime import datetime, timedelta
 '''
 import tkinter
 import math
@@ -34,7 +35,6 @@ class WeekeryApp(Tk):
         import matplotlib
         import math
         self.math = math
-        # matplotlib.use('TkAgg')
         import matplotlib.pyplot as plt
         self.plt = plt
         from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -538,16 +538,10 @@ class WeekeryApp(Tk):
 
     @staticmethod
     def _decimal_to_str(t):
-        minute, hour = math.modf(t)
-        if t < 0:
-            hour = int(23 + hour)
-            minute = round(60 + minute * 60)
-        else:
-            hour = int(hour)
-            minute = round(minute * 60)
-
-        t_str = str(hour) + ':' + str(minute)
-        return t_str
+        std = datetime(2000, 1, 1, 0, 0)
+        delta = timedelta(hours=t)
+        
+        return (std + delta).strftime("%H:%M")
 
     @staticmethod
     def make_autopct(values):
