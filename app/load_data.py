@@ -48,8 +48,13 @@ def wiz_week_index(cfg):
             day_op = file_name[3:8]
             day_ed = file_name[9:14]
             try:
-                op = datetime.datetime.strptime(year + day_op, '%Y.%m.%d')
-                ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
+                if day_op[:2] == '12' and day_ed[:2] == '01':
+                    old_year = str(int(f'20{file_name[0:2]}') - 1) + '.'
+                    op = datetime.datetime.strptime(old_year + day_op, '%Y.%m.%d')
+                    ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
+                else:
+                    op = datetime.datetime.strptime(year + day_op, '%Y.%m.%d')
+                    ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
                 id_filenames.append(year_folder + '\\' + file_name)
                 id_dates.append((int(op.strftime('%Y%m%d')), int(ed.strftime('%Y%m%d'))))
             except ValueError:
@@ -77,8 +82,15 @@ def read_one_file(cfg, days, year_file_name):
     day_op = file_name[3:8]
     day_ed = file_name[9:14]
     try:
-        op = datetime.datetime.strptime(year + day_op, '%Y.%m.%d')
-        ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
+        #op = datetime.datetime.strptime(year + day_op, '%Y.%m.%d')
+        #ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
+        if day_op[:2] == '12' and day_ed[:2] == '01':
+            old_year = str(int(f'20{file_name[0:2]}') - 1) + '.'
+            op = datetime.datetime.strptime(old_year + day_op, '%Y.%m.%d')
+            ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
+        else:
+            op = datetime.datetime.strptime(year + day_op, '%Y.%m.%d')
+            ed = datetime.datetime.strptime(year + day_ed, '%Y.%m.%d')
     except ValueError:
         showwarning("警告", '周记文件:[' + file_name + ']格式错误,请修改为形如18[01.01-01.07]W01的格式')
         return
@@ -324,12 +336,22 @@ def read_data(root, cfg, pgb, id_dates, id_filenames, order="default", dialog=Tr
     for i, note in enumerate(notes_list):
         # calculate the weed_id (middle of week)
         st_weekery = date_list[i][0]
+        '''
         week_mid = datetime.datetime.strptime(str(st_weekery), '%Y%m%d') + datetime.timedelta(days=3)
         week_id = int(week_mid.strftime('%Y%m%d'))   # id for TABLE WEEKS index
+
         
         # standardize week start day (Mon) and end day(Mon)
         week_st = week_mid - datetime.timedelta(days=week_mid.weekday())
         week_ed = week_st + datetime.timedelta(days=6)
+        '''
+        week_last = datetime.datetime.strptime(str(st_weekery), '%Y%m%d') + datetime.timedelta(days=6)
+        week_id = int(week_last.strftime('%Y%m%d'))   # id for TABLE WEEKS index
+        
+        # standardize week start day (Mon) and end day(Mon)
+        week_st = week_last - datetime.timedelta(days=week_last.weekday())
+        week_ed = week_st + datetime.timedelta(days=6)
+        
         week_st_id = int(week_st.strftime('%Y%m%d'))
         week_ed_id = int(week_ed.strftime('%Y%m%d'))
         

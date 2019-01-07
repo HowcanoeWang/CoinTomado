@@ -73,8 +73,27 @@ class Controls(object):
             w_st = self.st
             w_ed = self.ed
             while w_st <= w_ed:
-                index_range.append(w_st.strftime('%yW%W'))
+                # [TODO]: Fix weeks in 2 years display bug 
+                week_num = w_st.isocalendar()[1]
+                """
+                if w_st.strftime('%y') == w_ed.strftime('%y'):   # in the same year
+                    index_range.append(w_st.strftime('%yW%W')) #2019-01-03 => 00
+                    #index_range.append(f"{w_st.strftime('%y')}年第{week_num}周")
+                else:   # in different year
+                    st_year = int(w_st.strftime('%Y'))  # week start year
+                    year_end = datetime.date(st_year, 12, 31)
+                    delta = year_end - w_st
+                    if delta.days >= 7:   # not a week include 2 years
+                        #index_range.append(f"{w_st.strftime('%y')}年第{week_num}周")
+                        index_range.append(w_st.strftime('%yW%W'))
+                    else:
+                        index_range.append(w_st.strftime('%yW%W'))
+                """
+                w_last = w_st + datetime.timedelta(days=6)
+                #index_range.append(w_mid.strftime('%yW%W')) 
+                index_range.append(f"{w_last.strftime('%y')}年第{week_num}周")
                 w_st += datetime.timedelta(days=7)
+            print(index_range)
         elif self.mod == 'MONTHS':
             m_st = self.st
             m_ed = self.ed
@@ -104,7 +123,9 @@ class Controls(object):
             if self.mod == 'DAYS':
                 date_str = date.strftime('%y-%m-%d')
             elif self.mod == 'WEEKS':
-                date_str = date.strftime('%yW%W')
+                week_num = date.isocalendar()[1]
+                #date_str = date.strftime('%yW%W')
+                date_str = f"{date.strftime('%y')}年第{week_num}周"
             elif self.mod == 'MONTHS':
                 date_str = date.strftime('%Y-%m')
             elif self.mod == 'YEARS':
@@ -245,7 +266,7 @@ class Controls(object):
         self.query_data()
 
     def plus(self):
-        if self.n < 8:
+        if self.n < 12:
             self.n += 1
             self.date_range()
             self.query_data()
