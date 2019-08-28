@@ -93,7 +93,6 @@ class Controls(object):
                 #index_range.append(w_mid.strftime('%yW%W')) 
                 index_range.append(f"{w_last.strftime('%y')}年第{week_num}周")
                 w_st += datetime.timedelta(days=7)
-            print(index_range)
         elif self.mod == 'MONTHS':
             m_st = self.st
             m_ed = self.ed
@@ -163,7 +162,11 @@ class Controls(object):
         w_ed = int(ed_this_week.strftime('%Y%m%d'))
         notes_select = weeks.select('ID, notes', (w_st, w_ed))
         if len(notes_select) > 0:
-            notes = [datetime.datetime.strptime(str(notes_select[0][0]), '%Y%m%d').strftime('%yW%W'), notes_select[0][-1]]
+            date = datetime.datetime.strptime(str(notes_select[0][0]), '%Y%m%d')
+            week_num = date.isocalendar()[1]
+            # date_str = date.strftime('%yW%W')
+            date_str = f"{date.strftime('%y')}年第{week_num}周"
+            notes = [date_str, notes_select[0][-1]]
         else:
             notes = [None, '']
         self.kinds = kinds

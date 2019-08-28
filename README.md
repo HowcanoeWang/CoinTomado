@@ -1,105 +1,160 @@
-# WizStatistics
+# CoinTomado（原WizStatistics）
 
-基于**wiz**用**Python**构建的时间记录软件。 
- 
-![主界面](/images/main_gui.png)
+集合艾力时间金币法、Todo列表，番茄钟于一体的时间管理软件
 
+## 界面设计
 
-## 功能
+待续
 
-![功能](/images/WizStatistics.png)
+## 功能设计
 
-### TO DO
+1. 批量导入wiz（Extension， not in main app）
+2. 自动检测电脑当前窗口
+    1. 锁定检测：https://stackoverflow.com/questions/34514644/in-python-3-how-can-i-tell-if-windows-is-locked/43758104
+    2. 为时间记录辅助参考
+1. 每日评价颜色
+2. 快捷键合并与标色
+3. 睡眠统计
+4. TodoList（自动计入时间块）
+5. 番茄钟倒计时功能
+6. 多端同步（服务器后台？）
 
-- [x] 时长展示
-- [x] 图像界面
-- [x] 睡眠分析
-- [ ] 官网制作
-- [ ] 更新检查
-- [ ] 发送错误报告
-- [ ] 自动化创建模板
-- [ ] 词频分析
-- [ ] 功能设置
+## 数据库结构
 
+### 时间金币表
+#### Record
 
-## 如何使用
+|id|date|block_id|Action_id|Remark_id|Kind_id|rowspan|
+|---|---|---|---|---|---|---|
+|INT|TIME.DAY|INT|INT|INT|INT|INT|
+|0|2019/01/01|1|2|2|0|1|
+|1|2019/01/01|1|1|1|0|3|
+If happens at the same time, using the same block id
 
-### 1.软件安装
+#### Block
 
-1. 安装[为知笔记](www.wiz.cn) 
+| id   | Time_st  | Time_ed  |
+| ---- | -------- | -------- |
+| INT  | TIME.MIN | TIME.MIN |
+| 0    | 0：00    | 0：15    |
+| 1    | 0：16    | 0：30    |
 
-![Wiz Download Webside](/images/download.png)
+#### Action
 
-1. **下载**模板文件[WeekeryTemplate.wiztemplate](https://github.com/HowcanoeWang/WizStatistics/releases/download/Beta0.2/WeekeryTemplatev4.0.wiztemplate)并**导入**为知笔记
-    
-![named year](/images/load_template.png)
-    
-1.  设置模板，点击模板文件在编辑界面点分享按钮另存为模板。
+| id   | name      |
+| ---- | --------- |
+| INT  | CHAR(128) |
+| 0    | 晚饭      |
+| 1    | B站       |
 
-![notes from template](/images/notes_from_template.png) 
+#### Remark
 
-### 2.建立项目
-1. **新建**周记文件夹，**My Weekery**
+| id   | name        |
+| ---- | ----------- |
+| INT  | CHAR（128） |
+| 0    | 炒饭        |
+| 1    | 看番        |
 
-2. 在**My Weekery**文件夹里面，新建当前年份的文件夹，**2017**
+#### Kind
 
-   ![named year](/images/named_year.png)
+| id   | Name      | Color                |
+| ---- | --------- | -------------------- |
+| INT  | CHAR(128) | CHAR(32)             |
+| 0    | 休闲娱乐  | RGB(255,255,255,190) |
+| 1    | 高效工作  | RGB(255,255,0,190)   |
 
-3.  **使用模板**，进入**2017**文件夹，在新建笔记的**下拉菜单**中选择**周记模板**。  
+#### Summary
 
-   > 新笔记名称**必须**修改成 **yy[mm.dd-mm.dd]Wno.** 例如：**17[11.06-11.12]W45**
+| id   | Time       | Type | Contents（md） |
+| ---- | ---------- | ---- | -------------- |
+| INT  | TIME.DAY   | INT  | CHAR(512)      |
+| 0    | 2017.08.12 | 0    | # 每日总结\n   |
+| 1    | 2017.08.31 | 1    | # 月终总结\n   |
+| 2    | 2017.06.30 | 2    | # 季度总结\n   |
 
-   ![name example](/images/name_example.png)
-   
-   不然会报错
+> 每月最后一天，每日总结变为月终总结，每季最后一天，月终总结变为季度总结
 
-### 3.记录时间
+---
 
-使用为知笔记自带的编辑器，对表格进行编辑即可
+### 当前屏幕表
+#### ScreenRecord
+| id   | Time                | Devide_id | App_id | AppTitle_id |
+| ---- | ------------------- | --------- | ------ | ----------- |
+| INT  | TIME.DAY.MIN.SEC    | INT       | INT    | INT         |
+| 0    | 2017.08.09 10:00:01 | 0         | 1      | 1           |
+| 1    | 2017.08.09 10:00:16 | 0         | 2      | 2           |
 
-![note modify](/images/note_modify.png)
+> 采样密度：15s
 
-1. 颜色使用  
-    由于目前设置功能还在开发中（咕咕咕），暂时不支持颜色的自定义，请暂时严格按照下面的图例的颜色对时间块进行分类  
-    
-    ![legend](/images/legend.png)
-    
-    改变颜色的方法使用编辑器自带的工具条中间那栏 
-    
-    ![change_color](/images/change_color.png)
-    
-    **注意**：如果颜色为白色，那么该时间块不会被计算到柱状图中，但是时间块的文字依然会被计算到关键词时间统计（饼图）里面，应用的地方可以是：出国坐飞机，留白作为倒时差的时间块（尤其是北美采用地方时的时候）  
-    
-    ![time zone](/images/time_zone.png)  
-    上面的例子是，北京时间27号17：30起飞，飞了13个小时，落地多伦多当地时间27号18；30，时差就是这么神奇，这个时间块就作为了时差的缓冲，保证记录的都是当地时间。
+#### Device
 
-2. 字符使用  
+| id   | Name           |
+| ---- | -------------- |
+| INT  | CHAR(64)       |
+| 0    | 'NERV'         |
+| 1    | 'NERV_SURFACE' |
+| 2    | 'Pixel_XL2'    |
 
-    以简短的词语为佳，有一些特殊字符需要注意:  
-    
-    `:`:补充说明符，类似于注释的功能，比如一个时间块记录为“中饭:鸡排饭”，那么只有“中饭”会出现在关键词统计里，“鸡排饭”就作为注释被自动忽略了。（以后可能会增加关键词备注统计功能，咕咕咕）  
-    
-    `+`:同时发生符，比如“玩手机+上厕所”，意味着这个时间块内，“玩手机”和“上厕所”同时发生，都用了0.5小时，那么每个关键词会被视为占用了一整个时间块的时间。
-    
-    `|`:时间块分割符，用来解决半小时的时间块分辨率不够的问题，比如“洗漱|去学校”，说明此半小时的时间块内，做了两件独立的事情，洗漱完了之后去学校，因此洗漱和去学校的时间被平分成二等分，每个15min，以此类推，“A|B|C”,就把时间三等分,每个10min……
+#### App
 
-### 4.查看统计
+| id   | Name                        | WorkWhiteList |
+| ---- | --------------------------- | ------------- |
+| INT  | CHAR(64)                    | BOOL          |
+| 0    | python  getCurrentWindow.py | TRUE          |
+| 1    | Drawboard PDF               | TRUE          |
 
-1. 双击运行 **stat_exercise.exe**
+> 获取windows当前安装软件列表，https://www.cnblogs.com/dcb3688/p/4468770.html
+>
+> 如果软件不在白名单上，开启番茄钟的时候，会弹出专注的菜单
 
-    如果是第一次运行统计程序，则会建立数据库和配置文件，并需要用户选择周记文件夹的储存地点
+#### AppTitle
 
-    ![1535889497418](/images/1535889497418.png)
+| id   | name                                                         |
+| ---- | ------------------------------------------------------------ |
+| INT  | CHAR(128)                                                    |
+| 0    | C:\WINDOWS\System32\cmd.exe - python                         |
+| 1    | Clark 等。 - 2000 - A review of past research on dendrometers.pdf |
 
-    选择周记文件夹**My Weekery**
+在时间每天填写时间块的时候，旁边会辅助出现该时间块内的应用使用情况，以便进行决定
 
-    ![1535890364073](images/1535890364073.png)
+---
 
-1. 切换日周月年  
-   ![dwmy](images/dwmy.gif)
+### Todo表
+#### Project
 
-1. 切换当前日期  
-   ![date_switch](images/date_switch.gif)
+| id   | Name      | Kind_id | Task_id | Comments  |
+| ---- | --------- | ------- | ------- | --------- |
+| INT  | CHAR(128) | INT     | INT     | CHAR(128) |
+| 0    | 工作      | 1       | 0       | None      |
+| 1    | 游戏      | 0       | 1       | 1         |
 
-1. 切换模式  
-   ![mode_switch](images/mode_switch.gif)
+#### Task
+
+| id   | Name       | Subtask_id | Status | Urgent | Deadline   | PredNum | Comments  |
+| ---- | ---------- | ---------- | ------ | ------ | ---------- | ------- | --------- |
+| INT  | CHAR(128)  | INT        | BOOL   | INT    | TIME.DAY   | INT     | CHAR(128) |
+| 0    | 完成论文   | 0          | TRUE   | 1      | 2018.12.01 | 23      | None      |
+| 1    | 女神异闻录 | None       | FALSE  | 4      | None       | 13      | None      |
+
+> Status： TRUE=todo，FALSE=finished  
+> Urgent： 0=默认，1=紧急且重要，2=紧急但不重要，3=重要但不紧急，4=不重要也不紧急    
+> Deadline：None=someday
+
+#### Subtask
+
+| id   | Name       | Status |
+| ---- | ---------- | ------ |
+| INT  | CHAR(128)  | BOOL   |
+| 0    | 完成第一章 | TRUE   |
+
+### 番茄钟表
+#### Tomatodo
+
+| id   | Task_id | Subtask_id | St_time          | Ed_time          | Interrupted | Reason    |
+| ---- | ------- | ---------- | ---------------- | ---------------- | ----------- | --------- |
+| INT  | INT     | INT        | TIME.MIN         | TIME.MIN         | BOOL        | CHAR(128) |
+| 0    | 0       | 0          | 2017.09.19 12:03 | 2017.09.19 12:28 | FALSE       | None      |
+| 1    | 1       | 1          | 2017.09.19 12:29 | 2017.09.19 12:34 | TRUE        | 上厕所    |
+
+## 文件结构
+待续
