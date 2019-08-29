@@ -25,3 +25,6 @@ app/test.py
 
 # xmind file
 *.xmind
+
+# old app
+app.old
