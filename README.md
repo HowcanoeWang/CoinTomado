@@ -1,4 +1,4 @@
-# CoinTomado（原WizStatistics）
+# rCoinTomado（原WizStatistics）
 
 集合艾力时间金币法、Todo列表，番茄钟于一体的时间管理软件
 
@@ -24,21 +24,17 @@
 ### 时间金币表
 #### Record
 
-|id|date|block_id|Action_id|Remark_id|Kind_id|rowspan|
+|id|date|time_block|action__id|remark__id|kind_id|rowspan|
 |---|---|---|---|---|---|---|
-|INT|TIME.DAY|INT|INT|INT|INT|INT|
-|0|2019/01/01|1|2|2|0|1|
-|1|2019/01/01|1|1|1|0|3|
+|INT|INT|INT|INT|INT|INT|INT|
+|0|20190101|1|2|2|0|1|
+|1|20190101|1|1|1|0|3|
 
-If happens at the same time, using the same block id
-
-#### Block
-
-| id   | Time_st  | Time_ed  |
-| ---- | -------- | -------- |
-| INT  | TIME.MIN | TIME.MIN |
-| 0    | 0：00    | 0：15    |
-| 1    | 0：16    | 0：30    |
+> If happens at the same time, using the same TimeBlock
+> | TimeBlock | TimeSt | Time_ed |
+> | --------- | ------ | ------- |
+> | 0         | 0：00  | 0：15   |
+> | 1         | 0：16  | 0：30   |
 
 #### Action
 
@@ -58,7 +54,7 @@ If happens at the same time, using the same block id
 
 #### Kind
 
-| id   | Name      | Color                |
+| id   | name      | color                |
 | ---- | --------- | -------------------- |
 | INT  | CHAR(128) | CHAR(32)             |
 | 0    | 休闲娱乐  | RGB(255,255,255,190) |
@@ -66,12 +62,12 @@ If happens at the same time, using the same block id
 
 #### Summary
 
-| id   | Time       | Type | Contents（md） |
-| ---- | ---------- | ---- | -------------- |
-| INT  | TIME.DAY   | INT  | CHAR(512)      |
-| 0    | 2017.08.12 | 0    | # 每日总结\n   |
-| 1    | 2017.08.31 | 1    | # 月终总结\n   |
-| 2    | 2017.06.30 | 2    | # 季度总结\n   |
+| id   | date     | type | contents（md） |
+| ---- | -------- | ---- | -------------- |
+| INT  | INT      | INT  | CHAR(512)      |
+| 0    | 20170812 | 0    | # 每日总结\n   |
+| 1    | 20170831 | 1    | # 月终总结\n   |
+| 2    | 20170630 | 2    | # 季度总结\n   |
 
 > 每月最后一天，每日总结变为月终总结，每季最后一天，月终总结变为季度总结
 
@@ -79,11 +75,11 @@ If happens at the same time, using the same block id
 
 ### 当前屏幕表
 #### ScreenRecord
-| id   | Time                | Devide_id | App_id | AppTitle_id |
-| ---- | ------------------- | --------- | ------ | ----------- |
-| INT  | TIME.DAY.MIN.SEC    | INT       | INT    | INT         |
-| 0    | 2017.08.09 10:00:01 | 0         | 1      | 1           |
-| 1    | 2017.08.09 10:00:16 | 0         | 2      | 2           |
+| id   | Time                | Dev_ide_id | App_id | AppTitle_id |
+| ---- | ------------------- | ---------- | ------ | ----------- |
+| INT  | YYYY-MM-DD HH:MM:SS | INT        | INT    | INT         |
+| 0    | 2017-08-09 10:00:01 | 0          | 1      | 1           |
+| 1    | 2017-08-09 10:00:16 | 0          | 2      | 2           |
 
 > 采样密度：15s
 
@@ -133,8 +129,8 @@ If happens at the same time, using the same block id
 
 | id   | Name       | Subtask_id | Status | Urgent | Deadline   | PredNum | Comments  |
 | ---- | ---------- | ---------- | ------ | ------ | ---------- | ------- | --------- |
-| INT  | CHAR(128)  | INT        | BOOL   | INT    | TIME.DAY   | INT     | CHAR(128) |
-| 0    | 完成论文   | 0          | TRUE   | 1      | 2018.12.01 | 23      | None      |
+| INT  | CHAR(128)  | INT        | BOOL   | INT    | YYYY-MM-DD | INT     | CHAR(128) |
+| 0    | 完成论文   | 0          | TRUE   | 1      | 2018-12-01 | 23      | None      |
 | 1    | 女神异闻录 | None       | FALSE  | 4      | None       | 13      | None      |
 
 > Status： TRUE=todo，FALSE=finished  
