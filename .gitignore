@@ -28,3 +28,4 @@ app/test.py
 
 # old app
 app.old
+*.db

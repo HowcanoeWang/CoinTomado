@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 
 from PyQt5.QtWidgets import QApplication
 
-from models import *
+from db import *
 from gui import MainWindow
 
 app = QApplication(sys.argv)
