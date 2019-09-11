@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
+import struct
 from datetime import datetime
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-
-engine = create_engine('sqlite:///data.db', echo=True)
-DBSession = sessionmaker(bind=engine)
 
 Base = declarative_base()
 
@@ -53,11 +51,9 @@ class Color(Base):
     __tablename__ = 'color'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(8), unique=True)
-    red = Column(Integer)
-    green = Column(Integer)
-    blue = Column(Integer)
+    hex = Column(String(6), unique=True)
     alpha = Column(Integer)
+    name = Column(String(8), unique=True)
  
 
 class Summary(Base):
@@ -93,6 +89,7 @@ class App(Base):
     name = Column(Integer, unique=True)
     work_white_list = Column(Boolean, default=True)
 
+
 class AppTitle(Base):
     __tablename__ = 'app_title'
 
@@ -100,6 +97,8 @@ class AppTitle(Base):
     name = Column(String(128), unique=True)
 
 # ===== TodoFunction ======
+
+
 class Project(Base):
     __tablename__ = 'project'
 
@@ -108,6 +107,7 @@ class Project(Base):
     kind_id = Column(Integer, ForeignKey('kind.id'))
     task_id = Column(Integer, ForeignKey('task.id'))
     comments = Column(String(128), default='')
+
 
 class Task(Base):
     __tablename__ = 'task'
@@ -143,19 +143,132 @@ class Tomatodo(Base):
 
 ##############
 #  Controls  # 
-##############  
-    
-def update():
-    # 创建session对象:
-    session = DBSession()
-    # 创建新User对象:
-    new_user = Coin(id='0')
-    # 添加到session:
-    session.add(new_user)
-    # 提交即保存到数据库:
-    session.commit()
-    # 关闭session:
-    session.close()
+##############
 
-Base.metadata.create_all(engine)
-update()
+
+class DB_Operator(object):
+
+    def __init__(self, db_file):
+        self.engine = create_engine(f'sqlite:///{db_file}', echo=True)
+        self.sessionmaker = sessionmaker(bind=self.engine)
+
+    def create_db(self):
+        Base.metadata.create_all(self.engine)
+
+        self.add_color(color=(210, 223, 224), name='淡灰')
+        self.add_color(color=(32, 78, 135), name='靛青')
+        self.add_color(color=(60, 198, 237), name='天蓝')
+        self.add_color(color=(255, 176, 63), name='橙黄')
+        self.add_color(color=(132, 45, 115), name='深紫')
+        self.add_color(color=(238, 49, 107), name='品红')
+        self.add_color(color=(255, 212, 38), name='金黄')
+        self.add_color(color=(), name='草绿')
+        self.add_color(color=(), name='肉红')
+        self.add_color(color=(), name='淡紫')
+        self.add_color(color=(), name='浅绿')
+        self.add_color(color=(), name='水绿')
+        self.add_color(color=(), name='中紫')
+        self.add_color(color=(), name='海蓝')
+        self.add_color(color=(), name='洋红')
+        self.add_color(color=(), name='淡红')
+        self.add_color(color=(), name='银灰')
+        self.add_color(color=(), name='棕褐')
+        self.add_color(color=(), name='毯绿')
+        self.add_color(color=(), name='纯黑')
+
+
+
+    def add_coin(self, date, time_block, behavior, remark, kind, rowspan=1):
+        session = self.sessionmaker()
+
+        behavior_id = self.add_behavior(behavior)
+        remark_id = self.add_remark(remark)
+        #new_coin = Coin(date=date, time_block=time_block, rowspan=rowspan)
+
+        #session.add(new_coin)
+        #session.commit()
+        #session.close()
+
+    def add_behavior(self, name):
+        session = self.sessionmaker()
+        id_query = session.query(Behavior).filter_by(name=name).first()
+        if id_query is not None:
+            # this exists in table
+            behavior_id = id_query.id
+        else:
+            # not exist
+            new_behavior = Behavior(name=name)
+            session.add(new_behavior)
+            session.commit()
+            id_query = session.query(Behavior).filter_by(name=name).first()
+            behavior_id = id_query.id
+
+        session.close()
+        return behavior_id
+
+    def edit_behavior(self, behavior_id, name_new=None):
+        pass
+
+    def add_remark(self, name):
+        session = self.sessionmaker()
+        id_query = session.query(Remark).filter_by(name=name).first()
+        if id_query is not None:
+            # this exists in table
+            remark_id = id_query.id
+        else:
+            # not exist
+            new_remark = Remark(name=name)
+            session.add(new_remark)
+            session.commit()
+            id_query = session.query(Remark).filter_by(name=name).first()
+            remark_id = id_query.id
+
+        session.close()
+        return remark_id
+
+    def edit_remark(self, remark_id, name_new=None):
+        pass
+
+    def add_kind(self, name, color_rgba=None, color_name=None):
+        pass
+
+    def edit_kind(self, kind_id, name_new=None, color_new=None):
+        pass
+
+    def add_color(self, color=None, alpha=255, name=''):
+        # color is string = hex code
+        # color is tuple = (r, g, b) code
+        # alpha
+        session = self.sessionmaker()
+        if isinstance(color, tuple):
+            hex = self.rgb2hex(color)
+        else:
+            hex = color
+
+        new_color = Color(hex=hex, alpha=alpha, name=name)
+        session.add(new_color)
+        session.commit()
+        session.close()
+
+
+    def edit_color(self, color_id, name_new=None, rgba_new=None):
+        pass
+
+    def add_summary(self, date, sum_type, contents):
+        pass
+
+    def edit_summary(self, sum_id, date_new=None, sum_type_new=None, contents_new=None):
+        pass
+
+    @staticmethod
+    def rgb2hex(rgb):
+        return '#%02x%02x%02x' % rgb
+
+
+if __name__ == '__main__':
+    db_name = 'data_test.db'
+    import os
+    db = DB_Operator(db_name)
+    if not os.path.exists(db_name):
+        db.create_db()
+    db.add_coin(date=20190817, time_block=1, behavior='rua', remark=1, kind=1)
