@@ -35,18 +35,18 @@
 
 #### Kind
 
-| id   | name      | color                |
-| ---- | --------- | -------------------- |
-| INT  | CHAR(128) | CHAR(32)             |
-| 0    | 休闲娱乐  | RGB(255,255,255,190) |
-| 1    | 高效工作  | RGB(255,255,0,190)   |
+| id   | name      | color_id |
+| ---- | --------- | -------- |
+| INT  | CHAR(128) | INT      |
+| 0    | 休闲娱乐  | 0        |
+| 1    | 高效工作  | 1        |
 
 #### Color
 
-| id   | hex      | alpha | name    |
-| ---- | -------- | ----- | ------- |
-| INT  | CHAR(6)  | INT   | CHAR(8) |
-| 0    | '7bf5be' | 255   | 灰      |
+| id   | hex      | name    |
+| ---- | -------- | ------- |
+| INT  | CHAR(6)  | CHAR(8) |
+| 0    | '7bf5be' | 灰      |
 
 ![](img/focustodo_colormap.png)
 
